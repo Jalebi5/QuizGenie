@@ -8,6 +8,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -30,7 +31,7 @@ export default function UploadStep() {
         toast({
           variant: "destructive",
           title: "Invalid File Type",
-          description: "Please upload a JPG or PDF file.",
+          description: "Please upload a JPG, PNG, or PDF file.",
         });
         return;
       }
@@ -56,9 +57,9 @@ export default function UploadStep() {
     <div className="max-w-2xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Step 1: Upload Document</CardTitle>
+          <CardTitle className="font-headline">Step 1: Upload Your Pages</CardTitle>
           <CardDescription>
-            Upload a JPG or PDF file. We'll extract the text for you.
+            Drag & drop or click to select your book pages or notes.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -81,12 +82,14 @@ export default function UploadStep() {
             ) : (
               <div className="flex flex-col items-center gap-2 text-muted-foreground">
                 <UploadCloud className="h-8 w-8" />
-                <p>Click to browse or drag & drop</p>
-                <p className="text-sm">Supports: JPG, PNG, PDF</p>
+                <p>Drag & drop images, or click to select</p>
               </div>
             )}
           </div>
         </CardContent>
+        <CardFooter className="justify-center text-sm text-muted-foreground pt-4">
+          <p>Powered by Google Gemini.</p>
+        </CardFooter>
       </Card>
     </div>
   );
