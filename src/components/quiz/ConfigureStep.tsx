@@ -36,6 +36,7 @@ import { type StoredQuizData } from "@/types/quiz";
 
 const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
+// This schema ensures that both numbers (from default values) and strings (from select) are handled correctly for validation.
 const formSchema = z.object({
   numberOfQuestions: z.preprocess((val) => String(val), z.string()).transform(Number),
   optionsPerQuestion: z.preprocess((val) => String(val), z.enum(["4", "5"])).transform(Number),
@@ -173,6 +174,7 @@ export default function ConfigureStep() {
                           <SelectItem value="60">60 seconds</SelectItem>
                         </SelectContent>
                       </Select>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
