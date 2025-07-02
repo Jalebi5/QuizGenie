@@ -7,7 +7,7 @@ import { QuizResult } from "@/types/quiz";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, X } from "lucide-react";
+import { Check, X, HelpCircle } from "lucide-react";
 import Confetti from "./Confetti";
 import WorkHard from "./WorkHard";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,11 @@ export default function ResultsClient() {
   }
 
   const isSuccess = result.accuracy > 60;
+  
+  const createMarkup = (text: string) => {
+    const boldedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return { __html: boldedText };
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -82,13 +87,13 @@ export default function ResultsClient() {
                 return (
                   <AccordionItem value={`item-${qIndex}`} key={qIndex}>
                     <AccordionTrigger>
-                      <div className="flex items-center gap-2">
-                        {isCorrect ? <Check className="h-5 w-5 text-green-500" /> : <X className="h-5 w-5 text-destructive" />}
-                        <span className="text-left">{question.question}</span>
+                      <div className="flex items-center gap-2 w-full">
+                        {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0" /> : <X className="h-5 w-5 text-destructive flex-shrink-0" />}
+                        <span className="text-left flex-1">{question.question}</span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2 mb-4">
                         {question.options.map((option, oIndex) => {
                           const isUserAnswer = oIndex === userAnswerIndex;
                           const isCorrectAnswer = oIndex === question.correctAnswerIndex;
@@ -108,6 +113,17 @@ export default function ResultsClient() {
                           );
                         })}
                       </ul>
+                      {question.explanation && (
+                        <Card className="bg-muted/50">
+                          <CardHeader className="flex-row items-center gap-2 pb-2">
+                             <HelpCircle className="h-5 w-5 text-muted-foreground" />
+                             <CardTitle className="text-md font-headline">Explanation</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                             <div className="text-sm text-muted-foreground" dangerouslySetInnerHTML={createMarkup(question.explanation)} />
+                          </CardContent>
+                        </Card>
+                      )}
                     </AccordionContent>
                   </AccordionItem>
                 );

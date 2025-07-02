@@ -34,10 +34,10 @@ import { useToast } from "@/hooks/use-toast";
 import { handleGenerateQuiz } from "@/lib/actions";
 import { type StoredQuizData } from "@/types/quiz";
 
-const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100"] as const;
+const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
 const formSchema = z.object({
-  numberOfQuestions: z.enum(questionCountOptions).transform(Number),
+  numberOfQuestions: z.string().transform(Number),
   optionsPerQuestion: z.enum(["4", "5"]).transform(Number),
   timer: z.enum(["15", "30", "45", "60"]).transform(Number),
 });
@@ -117,7 +117,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Number of Questions</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                      <Select onValueChange={field.onChange} value={String(field.value)}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select number of questions" />
@@ -139,7 +139,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Options per Question</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                       <Select onValueChange={field.onChange} value={String(field.value)}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select number of options" />
@@ -160,7 +160,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Timer per Question</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                      <Select onValueChange={field.onChange} value={String(field.value)}>
                          <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select timer duration" />

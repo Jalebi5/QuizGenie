@@ -23,6 +23,7 @@ const GenerateQuizOutputSchema = z.object({
       question: z.string().describe('The quiz question.'),
       options: z.array(z.string()).describe('The answer options for the question.'),
       correctAnswerIndex: z.number().min(0).describe('The index of the correct answer in the options array.'),
+      explanation: z.string().describe('A brief explanation of why the correct answer is correct, with important points in bold using Markdown (e.g., **this is important**).'),
     })
   ).describe('The generated quiz questions and answers.'),
 });
@@ -37,6 +38,8 @@ const generateQuizPrompt = ai.definePrompt({
   input: {schema: GenerateQuizInputSchema},
   output: {schema: GenerateQuizOutputSchema},
   prompt: `You are a quiz generator expert. Given the following document text, generate a quiz with the specified number of questions and options per question.
+
+For each question, also provide a concise explanation for why the correct answer is correct. Highlight the most important parts of the explanation in bold using Markdown syntax (e.g., **this is important**).
 
 Document Text: {{{documentText}}}
 
