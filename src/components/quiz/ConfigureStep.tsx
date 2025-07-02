@@ -36,11 +36,10 @@ import { type StoredQuizData } from "@/types/quiz";
 
 const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
-// This schema ensures that both numbers (from default values) and strings (from select) are handled correctly for validation.
 const formSchema = z.object({
-  numberOfQuestions: z.preprocess((val) => String(val), z.string()).transform(Number),
-  optionsPerQuestion: z.preprocess((val) => String(val), z.enum(["4", "5"])).transform(Number),
-  timer: z.preprocess((val) => String(val), z.enum(["15", "30", "45", "60"])).transform(Number),
+  numberOfQuestions: z.string().transform(Number),
+  optionsPerQuestion: z.enum(["4", "5"]).transform(Number),
+  timer: z.enum(["15", "30", "45", "60"]).transform(Number),
 });
 
 export default function ConfigureStep() {
@@ -62,9 +61,9 @@ export default function ConfigureStep() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      numberOfQuestions: 10,
-      optionsPerQuestion: 4,
-      timer: 30,
+      numberOfQuestions: "10",
+      optionsPerQuestion: "4",
+      timer: "30",
     },
   });
 
@@ -118,7 +117,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Number of Questions</FormLabel>
-                      <Select onValueChange={field.onChange} value={String(field.value)}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select number of questions" />
@@ -140,7 +139,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Options per Question</FormLabel>
-                       <Select onValueChange={field.onChange} value={String(field.value)}>
+                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select number of options" />
@@ -161,7 +160,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Timer per Question</FormLabel>
-                      <Select onValueChange={field.onChange} value={String(field.value)}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                          <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select timer duration" />
