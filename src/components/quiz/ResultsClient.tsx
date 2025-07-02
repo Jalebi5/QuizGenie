@@ -114,15 +114,16 @@ export default function ResultsClient() {
                         })}
                       </ul>
                       {question.explanation && (
-                        <Card className="bg-muted/50">
-                          <CardHeader className="flex-row items-center gap-2 pb-2">
-                             <HelpCircle className="h-5 w-5 text-muted-foreground" />
-                             <CardTitle className="text-md font-headline">Explanation</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                             <div className="text-sm text-muted-foreground" dangerouslySetInnerHTML={createMarkup(question.explanation)} />
-                          </CardContent>
-                        </Card>
+                        <div className="mt-4 rounded-lg border border-primary/20 bg-primary/10 p-4 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <HelpCircle className="h-5 w-5 text-primary" />
+                            <h4 className="font-bold font-headline text-primary">Explanation</h4>
+                          </div>
+                          <div
+                            className="text-sm text-foreground/80"
+                            dangerouslySetInnerHTML={createMarkup(question.explanation)}
+                          />
+                        </div>
                       )}
                     </AccordionContent>
                   </AccordionItem>
