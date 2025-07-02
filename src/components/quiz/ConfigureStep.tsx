@@ -23,7 +23,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -35,8 +34,10 @@ import { useToast } from "@/hooks/use-toast";
 import { handleGenerateQuiz } from "@/lib/actions";
 import { type StoredQuizData } from "@/types/quiz";
 
+const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100"] as const;
+
 const formSchema = z.object({
-  numberOfQuestions: z.coerce.number().min(1, "Minimum 1 question").max(500, "Maximum 500 questions"),
+  numberOfQuestions: z.enum(questionCountOptions).transform(Number),
   optionsPerQuestion: z.enum(["4", "5"]).transform(Number),
   timer: z.enum(["15", "30", "45", "60"]).transform(Number),
 });
@@ -60,7 +61,7 @@ export default function ConfigureStep() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      numberOfQuestions: 5,
+      numberOfQuestions: 10,
       optionsPerQuestion: 4,
       timer: 30,
     },
@@ -116,9 +117,18 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Number of Questions</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select number of questions" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {questionCountOptions.map((option) => (
+                             <SelectItem key={option} value={option}>{option} Questions</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
