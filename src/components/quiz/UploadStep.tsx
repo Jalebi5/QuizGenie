@@ -13,10 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-
-const sampleText = `The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower.
-Constructed from 1887 to 1889 as the entrance to the 1889 World's Fair, it was initially criticized by some of France's leading artists and intellectuals for its design, but it has become a global cultural icon of France and one of the most recognizable structures in the world. The Eiffel Tower is the most-visited paid monument in the world; 6.91 million people ascended it in 2015.
-The tower is 324 metres (1,063 ft) tall, about the same height as an 81-storey building, and the tallest structure in Paris. Its base is square, measuring 125 metres (410 ft) on each side. During its construction, the Eiffel Tower surpassed the Washington Monument to become the tallest man-made structure in the world, a title it held for 41 years until the Chrysler Building in New York City was finished in 1930.`;
+import { handleExtractText } from "@/lib/actions";
 
 export default function UploadStep() {
   const router = useRouter();
@@ -24,7 +21,16 @@ export default function UploadStep() {
   const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       if (file.type !== "application/pdf" && !file.type.startsWith("image/")) {
@@ -35,17 +41,32 @@ export default function UploadStep() {
         });
         return;
       }
+      
       setIsExtracting(true);
-      // Simulate OCR extraction
-      setTimeout(() => {
-        sessionStorage.setItem("documentText", sampleText);
-        setIsExtracting(false);
+
+      try {
+        const photoDataUri = await fileToDataUri(file);
+        const result = await handleExtractText({ photoDataUri });
+
+        if (result.success && result.data) {
+          sessionStorage.setItem("documentText", result.data.text);
+          toast({
+            title: "Text Extracted",
+            description: "Text has been successfully extracted from your document.",
+          });
+          router.push('/review');
+        } else {
+          throw new Error(result.error || "Failed to extract text.");
+        }
+      } catch (error) {
         toast({
-          title: "Text Extracted",
-          description: "Text has been successfully extracted from your document.",
+          variant: "destructive",
+          title: "Extraction Failed",
+          description: "Could not extract text from the document. Please try again.",
         });
-        router.push('/review');
-      }, 2000);
+      } finally {
+        setIsExtracting(false);
+      }
     }
   };
 
