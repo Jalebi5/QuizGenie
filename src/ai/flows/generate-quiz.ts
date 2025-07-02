@@ -15,6 +15,9 @@ const GenerateQuizInputSchema = z.object({
   numberOfQuestions: z.number().min(1).max(500).default(10).describe('The number of questions to generate for the quiz.'),
   optionsPerQuestion: z.number().min(4).max(5).default(4).describe('The number of answer options to generate per question.'),
   enrichExplanations: z.boolean().optional().default(false).describe('Whether to generate detailed explanations for each answer.'),
+  questionType: z.enum(["any", "facts", "concepts", "cause_effect"]).default("any").describe("The type of questions to generate."),
+  difficulty: z.enum(["easy", "medium", "hard"]).default("medium").describe("The difficulty level of the questions."),
+  keywords: z.string().optional().describe("A comma-separated list of keywords to focus the quiz on."),
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
@@ -38,11 +41,21 @@ const generateQuizPrompt = ai.definePrompt({
   name: 'generateQuizPrompt',
   input: {schema: GenerateQuizInputSchema},
   output: {schema: GenerateQuizOutputSchema},
-  prompt: `You are a quiz generator expert. Given the following document text, generate a quiz with the specified number of questions and options per question.
+  prompt: `You are an expert quiz generator for competitive exams. Given the following document text, generate a quiz with the specified number of questions and options per question.
+
+The quiz should be of **{{difficulty}}** difficulty.
 
 {{#if enrichExplanations}}
 For each question, also provide a concise explanation for why the correct answer is correct. Highlight the most important parts of the explanation in bold using Markdown syntax (e.g., **this is important**).
 {{/if}}
+
+{{#if keywords}}
+Focus the questions on the following keywords: **{{keywords}}**.
+{{/if}}
+
+{{#ifCond questionType "!==" "any"}}
+The questions should focus on **{{#ifCond questionType "===" "facts"}}facts and figures{{/ifCond}}{{#ifCond questionType "===" "concepts"}}concepts and definitions{{/ifCond}}{{#ifCond questionType "===" "cause_effect"}}cause and effect{{/ifCond}}**.
+{{/ifCond}}
 
 Document Text: {{{documentText}}}
 

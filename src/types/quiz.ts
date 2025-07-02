@@ -1,4 +1,4 @@
-import { type GenerateQuizOutput } from "@/ai/flows/generate-quiz";
+import { type GenerateQuizInput, type GenerateQuizOutput } from "@/ai/flows/generate-quiz";
 
 export type Quiz = GenerateQuizOutput["quiz"];
 export type Question = Quiz[0];
@@ -7,6 +7,10 @@ export interface QuizConfig {
   numberOfQuestions: number;
   optionsPerQuestion: number;
   timer: number;
+  quizMode: "perQuestion" | "timedChallenge";
+  difficulty: "easy" | "medium" | "hard";
+  questionType: "any" | "facts" | "concepts" | "cause_effect";
+  keywords?: string;
 }
 
 export interface StoredQuizData extends QuizConfig {

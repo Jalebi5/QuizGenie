@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,36 +9,54 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Highlighter } from "lucide-react";
 
 export default function ReviewStep() {
   const router = useRouter();
   const { toast } = useToast();
   const [documentText, setDocumentText] = useState("");
+  const [selectedText, setSelectedText] = useState("");
 
   useEffect(() => {
     const text = sessionStorage.getItem("documentText");
     if (text) {
       setDocumentText(text);
     } else {
-      // If no text, go back to upload
       router.push("/");
     }
   }, [router]);
   
+  const handleSelectionChange = useCallback(() => {
+    const selection = window.getSelection()?.toString() || "";
+    if (selection.length > 10) {
+      setSelectedText(selection);
+    } else {
+      setSelectedText("");
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, [handleSelectionChange]);
+
   const handleNext = () => {
-    if (documentText.length < 100) {
+    const textToUse = selectedText || documentText;
+    if (textToUse.length < 50) {
       toast({
         variant: "destructive",
         title: "Text is too short",
-        description: "Please provide at least 100 characters of text.",
+        description: "Please provide at least 50 characters of text.",
       });
       return;
     }
-    sessionStorage.setItem("documentText", documentText);
+    sessionStorage.setItem("documentText", textToUse);
     router.push('/configure');
   };
 
@@ -46,9 +64,9 @@ export default function ReviewStep() {
     <div className="max-w-4xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Step 2: Review & Generate Quiz</CardTitle>
+          <CardTitle className="font-headline">Step 2: Review & Edit Text</CardTitle>
           <CardDescription>
-            The text from your images is below. You can edit it before generating the quiz.
+            The text from your document is below. You can edit it or highlight a specific section to generate a quiz from.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -57,15 +75,24 @@ export default function ReviewStep() {
             onChange={(e) => setDocumentText(e.target.value)}
             placeholder="Extracted text will appear here..."
             rows={20}
-            className="text-sm"
+            className="text-base"
           />
         </CardContent>
+        <CardFooter className="flex justify-between items-center mt-4">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
+                <Highlighter className="h-4 w-4" />
+                <p>
+                    {selectedText 
+                        ? `${selectedText.length} characters selected` 
+                        : "Highlight text to create a quiz from a specific section."}
+                </p>
+            </div>
+            <Button onClick={handleNext}>
+                {selectedText ? "Quiz on Selected Text" : "Quiz on Full Text"}
+                <ArrowRight />
+            </Button>
+        </CardFooter>
       </Card>
-      <div className="flex justify-end mt-6">
-        <Button onClick={handleNext}>
-          Next <ArrowRight />
-        </Button>
-      </div>
     </div>
   );
 }

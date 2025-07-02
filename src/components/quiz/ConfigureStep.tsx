@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Settings } from "lucide-react";
+import { Loader2, Settings, Sparkles, Wand2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from "@/components/ui/card";
 import {
   Form,
@@ -30,18 +31,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { handleGenerateQuiz } from "@/lib/actions";
 import { type StoredQuizData } from "@/types/quiz";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "../ui/label";
 
 const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
 const formSchema = z.object({
   numberOfQuestions: z.string(),
-  timer: z.enum(["15", "30", "45", "60"]),
-  enrichExplanations: z.boolean().default(false),
-});
+  quizMode: z.enum(["perQuestion", "timedChallenge"]),
+  timerPerQuestion: z.enum(["15", "30", "45", "60", "90", "120"]).optional(),
+  timerTotal: z.string().optional(),
+  // Advanced
+  difficulty: z.enum(["easy", "medium", "hard"]),
+  questionType: z.enum(["any", "facts", "concepts", "cause_effect"]),
+  keywords: z.string().optional(),
+}).refine(data => {
+    if (data.quizMode === 'timedChallenge' && !data.timerTotal) {
+        return false;
+    }
+    return true;
+}, { message: "Total time is required for a Timed Challenge", path: ["timerTotal"]});
 
 export default function ConfigureStep() {
   const router = useRouter();
@@ -51,7 +65,11 @@ export default function ConfigureStep() {
 
   useEffect(() => {
     const text = sessionStorage.getItem("documentText");
-    if (text) {
+    const selectedText = sessionStorage.getItem("selectedText");
+    if (selectedText) {
+      setDocumentText(selectedText);
+      sessionStorage.removeItem("selectedText"); 
+    } else if (text) {
       setDocumentText(text);
     } else {
       router.push('/');
@@ -62,11 +80,17 @@ export default function ConfigureStep() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      numberOfQuestions: "5",
-      timer: "30",
-      enrichExplanations: false,
+      numberOfQuestions: "10",
+      quizMode: "perQuestion",
+      timerPerQuestion: "30",
+      timerTotal: "10",
+      difficulty: "medium",
+      questionType: "any",
+      keywords: "",
     },
   });
+  
+  const quizMode = form.watch("quizMode");
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!documentText) {
@@ -81,17 +105,22 @@ export default function ConfigureStep() {
     
     setIsGenerating(true);
 
-    const numericValues = {
+    const timerValue = values.quizMode === 'perQuestion' 
+        ? parseInt(values.timerPerQuestion || "30", 10) 
+        : parseInt(values.timerTotal || "10", 10) * 60;
+
+    const quizConfig = {
       numberOfQuestions: parseInt(values.numberOfQuestions, 10),
-      optionsPerQuestion: 4, // Hardcoded as per UI change
-      timer: parseInt(values.timer, 10),
+      optionsPerQuestion: 4,
+      difficulty: values.difficulty,
+      questionType: values.questionType,
+      keywords: values.keywords,
+      enrichExplanations: true,
     };
 
     const result = await handleGenerateQuiz({ 
       documentText, 
-      numberOfQuestions: numericValues.numberOfQuestions,
-      optionsPerQuestion: numericValues.optionsPerQuestion,
-      enrichExplanations: values.enrichExplanations,
+      ...quizConfig
      });
     setIsGenerating(false);
 
@@ -99,7 +128,9 @@ export default function ConfigureStep() {
       const storedData: StoredQuizData = {
         quiz: result.data.quiz,
         documentText,
-        ...numericValues,
+        ...quizConfig,
+        quizMode: values.quizMode,
+        timer: timerValue,
       };
       sessionStorage.setItem("quizData", JSON.stringify(storedData));
       router.push("/quiz");
@@ -118,80 +149,195 @@ export default function ConfigureStep() {
           <CardHeader>
             <CardTitle className="font-headline flex items-center gap-2">
               <Settings className="h-6 w-6" />
-              Quiz Settings
+              Configure Your Quiz
             </CardTitle>
+            <CardDescription>
+                Fine-tune the settings to generate the perfect quiz for your study session.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <FormField
-                  control={form.control}
-                  name="numberOfQuestions"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Number of Questions</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select number of questions" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {questionCountOptions.map((option) => (
-                             <SelectItem key={option} value={option}>{option}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="timer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Time per Question</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select timer duration" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="15">15 seconds</SelectItem>
-                          <SelectItem value="30">30 seconds</SelectItem>
-                          <SelectItem value="45">45 seconds</SelectItem>
-                          <SelectItem value="60">60 seconds</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <Accordion type="multiple" defaultValue={["basic"]} className="w-full">
+                    <AccordionItem value="basic">
+                        <AccordionTrigger>
+                            <h3 className="text-lg font-semibold font-headline flex items-center gap-2"><Wand2/> Basic Settings</h3>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4 space-y-6">
+                            <FormField
+                            control={form.control}
+                            name="numberOfQuestions"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Number of Questions</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select number of questions" />
+                                    </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                    {questionCountOptions.map((option) => (
+                                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                                    ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
 
-                <FormField
-                  control={form.control}
-                  name="enrichExplanations"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Enrich Explanations
-                        </FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                            <FormField
+                                control={form.control}
+                                name="quizMode"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                    <FormLabel>Timing Style</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-col space-y-1"
+                                        >
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="perQuestion" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                            Per Question Timer
+                                            </FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="timedChallenge" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                            Timed Challenge (Whole Quiz)
+                                            </FormLabel>
+                                        </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                <Button type="submit" className="w-full" disabled={isGenerating || !documentText}>
+                            {quizMode === 'perQuestion' && (
+                                <FormField
+                                control={form.control}
+                                name="timerPerQuestion"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Time per Question</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select timer duration" />
+                                        </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="15">15 seconds</SelectItem>
+                                            <SelectItem value="30">30 seconds</SelectItem>
+                                            <SelectItem value="45">45 seconds</SelectItem>
+                                            <SelectItem value="60">60 seconds</SelectItem>
+                                            <SelectItem value="90">90 seconds</SelectItem>
+                                            <SelectItem value="120">2 minutes</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                            )}
+                            
+                            {quizMode === 'timedChallenge' && (
+                                <FormField
+                                    control={form.control}
+                                    name="timerTotal"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Total Quiz Time (minutes)</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" placeholder="e.g., 10" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="advanced">
+                        <AccordionTrigger>
+                            <h3 className="text-lg font-semibold font-headline flex items-center gap-2"><Sparkles/> Advanced Settings</h3>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4 space-y-6">
+                            <FormField
+                                control={form.control}
+                                name="difficulty"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Difficulty Level</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select difficulty" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="easy">Easy</SelectItem>
+                                                <SelectItem value="medium">Medium</SelectItem>
+                                                <SelectItem value="hard">Hard</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="questionType"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Question Type Focus</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select question type" />
+                                            </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="any">Any Type</SelectItem>
+                                                <SelectItem value="facts">Facts & Figures</SelectItem>
+                                                <SelectItem value="concepts">Concepts & Definitions</SelectItem>
+                                                <SelectItem value="cause_effect">Cause & Effect</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="keywords"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Keyword Focus</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g., constitution, amendments, rights" {...field} />
+                                    </FormControl>
+                                    <FormDescription>
+                                        Enter comma-separated keywords to focus the quiz.
+                                    </FormDescription>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+
+                <Button type="submit" className="w-full !mt-8" size="lg" disabled={isGenerating || !documentText}>
                   {isGenerating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
