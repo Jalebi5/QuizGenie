@@ -45,6 +45,12 @@ const generateQuizPrompt = ai.definePrompt({
 
 The quiz should be of **{{difficulty}}** difficulty.
 
+The type of questions to generate should be: **{{questionType}}**. 
+- If the type is "facts", focus on facts and figures. 
+- If "concepts", focus on concepts and definitions. 
+- If "cause_effect", focus on cause and effect. 
+- If "any", use a mix of question types.
+
 {{#if enrichExplanations}}
 For each question, also provide a concise explanation for why the correct answer is correct. Highlight the most important parts of the explanation in bold using Markdown syntax (e.g., **this is important**).
 {{/if}}
@@ -52,10 +58,6 @@ For each question, also provide a concise explanation for why the correct answer
 {{#if keywords}}
 Focus the questions on the following keywords: **{{keywords}}**.
 {{/if}}
-
-{{#ifCond questionType "!==" "any"}}
-The questions should focus on **{{#ifCond questionType "===" "facts"}}facts and figures{{/ifCond}}{{#ifCond questionType "===" "concepts"}}concepts and definitions{{/ifCond}}{{#ifCond questionType "===" "cause_effect"}}cause and effect{{/ifCond}}**.
-{{/ifCond}}
 
 Document Text: {{{documentText}}}
 
