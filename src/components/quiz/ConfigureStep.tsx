@@ -37,9 +37,9 @@ import { type StoredQuizData } from "@/types/quiz";
 const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
 const formSchema = z.object({
-  numberOfQuestions: z.string().transform(Number),
-  optionsPerQuestion: z.enum(["4", "5"]).transform(Number),
-  timer: z.enum(["15", "30", "45", "60"]).transform(Number),
+  numberOfQuestions: z.string(),
+  optionsPerQuestion: z.enum(["4", "5"]),
+  timer: z.enum(["15", "30", "45", "60"]),
 });
 
 export default function ConfigureStep() {
@@ -79,14 +79,25 @@ export default function ConfigureStep() {
     }
     
     setIsGenerating(true);
-    const result = await handleGenerateQuiz({ ...values, documentText });
+
+    const numericValues = {
+      numberOfQuestions: parseInt(values.numberOfQuestions, 10),
+      optionsPerQuestion: parseInt(values.optionsPerQuestion, 10),
+      timer: parseInt(values.timer, 10),
+    };
+
+    const result = await handleGenerateQuiz({ 
+      documentText, 
+      numberOfQuestions: numericValues.numberOfQuestions,
+      optionsPerQuestion: numericValues.optionsPerQuestion,
+     });
     setIsGenerating(false);
 
     if (result.success && result.data) {
       const storedData: StoredQuizData = {
         quiz: result.data.quiz,
         documentText,
-        ...values,
+        ...numericValues,
       };
       sessionStorage.setItem("quizData", JSON.stringify(storedData));
       router.push("/quiz");
@@ -117,7 +128,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Number of Questions</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select number of questions" />
@@ -139,7 +150,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Options per Question</FormLabel>
-                       <Select onValueChange={field.onChange} value={field.value}>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select number of options" />
@@ -160,7 +171,7 @@ export default function ConfigureStep() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Timer per Question</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                          <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select timer duration" />
