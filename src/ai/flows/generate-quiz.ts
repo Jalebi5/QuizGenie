@@ -12,7 +12,7 @@ import {z} from 'genkit';
 
 const GenerateQuizInputSchema = z.object({
   documentText: z.string().describe('The extracted text content from the document.'),
-  numberOfQuestions: z.number().min(1).max(20).default(10).describe('The number of questions to generate for the quiz.'),
+  numberOfQuestions: z.number().min(1).max(500).default(10).describe('The number of questions to generate for the quiz.'),
   optionsPerQuestion: z.number().min(4).max(5).default(4).describe('The number of answer options to generate per question.'),
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
