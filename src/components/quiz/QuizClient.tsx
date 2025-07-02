@@ -2,19 +2,20 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Clock } from "lucide-react";
 import {
   Quiz,
   StoredQuizData,
   Question,
   QuizResult,
 } from "@/types/quiz";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 export default function QuizClient() {
   const router = useRouter();
@@ -42,6 +43,13 @@ export default function QuizClient() {
     }
   }, [quizData]);
 
+  const handleNext = useCallback(() => {
+    if (quizData && currentQuestionIndex < quizData.quiz.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+      resetTimer();
+    }
+  }, [quizData, currentQuestionIndex, resetTimer]);
+
   useEffect(() => {
     if (!quizData) return;
 
@@ -56,15 +64,8 @@ export default function QuizClient() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentQuestionIndex, quizData]);
+  }, [currentQuestionIndex, quizData, handleNext]);
 
-  const handleNext = useCallback(() => {
-    if (quizData && currentQuestionIndex < quizData.quiz.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
-      resetTimer();
-    }
-  }, [quizData, currentQuestionIndex, resetTimer]);
-  
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1);
@@ -119,21 +120,20 @@ export default function QuizClient() {
 
   const currentQuestion: Question = quizData.quiz[currentQuestionIndex];
   const progressPercentage = ((currentQuestionIndex + 1) / quizData.quiz.length) * 100;
-  const timerPercentage = (timeLeft / quizData.timer) * 100;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-4 space-y-2">
-         <p className="text-sm text-muted-foreground">Question {currentQuestionIndex + 1} of {quizData.quiz.length}</p>
-         <Progress value={progressPercentage} />
-      </div>
+    <div className="max-w-2xl mx-auto">
+      <Progress value={progressPercentage} className="mb-4" />
       <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg font-medium">Question {currentQuestionIndex + 1} of {quizData.quiz.length}</CardTitle>
+            <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="h-5 w-5" />
+                <span>{timeLeft}s</span>
+            </div>
+        </CardHeader>
         <CardContent className="p-6">
-          <div className="mb-6 space-y-2">
-            <p className="text-sm text-muted-foreground">Time left: {timeLeft}s</p>
-            <Progress value={timerPercentage} className="h-2" />
-          </div>
-          <h2 className="text-xl md:text-2xl font-headline font-semibold mb-6">
+          <h2 className="text-2xl font-bold font-headline mb-6">
             {currentQuestion.question}
           </h2>
 
@@ -146,7 +146,11 @@ export default function QuizClient() {
               <Label
                 key={index}
                 htmlFor={`option-${index}`}
-                className="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-secondary has-[input:checked]:bg-primary has-[input:checked]:text-primary-foreground transition-colors"
+                className={cn(
+                  "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
+                  "hover:bg-secondary",
+                  "has-[input:checked]:bg-green-100 has-[input:checked]:border-green-500 has-[input:checked]:text-green-900 dark:has-[input:checked]:bg-green-900 dark:has-[input:checked]:text-green-100"
+                )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
                 <span className="font-bold mr-4">{String.fromCharCode(65 + index)}</span>
