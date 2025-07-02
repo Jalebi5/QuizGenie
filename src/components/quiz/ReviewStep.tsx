@@ -46,9 +46,9 @@ export default function ReviewStep() {
     <div className="max-w-4xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Step 2: Review Extracted Text</CardTitle>
+          <CardTitle className="font-headline">Step 2: Review & Generate Quiz</CardTitle>
           <CardDescription>
-            Review or edit the extracted text below.
+            The text from your images is below. You can edit it before generating the quiz.
           </CardDescription>
         </CardHeader>
         <CardContent>
