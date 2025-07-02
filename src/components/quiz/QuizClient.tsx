@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle, Clock } from "lucide-react";
+import { ArrowRight, CheckCircle, Clock, HelpCircle, Lightbulb, Loader2 } from "lucide-react";
 import {
   Quiz,
   StoredQuizData,
@@ -16,14 +16,24 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { handleSimplifyExplanation } from "@/lib/actions";
+import { Skeleton } from "../ui/skeleton";
 
 export default function QuizClient() {
   const router = useRouter();
+  const { toast } = useToast();
+  const quizCardRef = useRef<HTMLDivElement>(null);
 
   const [quizData, setQuizData] = useState<StoredQuizData | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
+
+  // New state for instant feedback and explanations
+  const [isAnswered, setIsAnswered] = useState(false);
+  const [simplifiedExplanation, setSimplifiedExplanation] = useState<string | null>(null);
+  const [isSimplifying, setIsSimplifying] = useState(false);
 
   useEffect(() => {
     const data = sessionStorage.getItem("quizData");
@@ -46,12 +56,16 @@ export default function QuizClient() {
   const handleNext = useCallback(() => {
     if (quizData && currentQuestionIndex < quizData.quiz.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
+      setIsAnswered(false);
+      setSimplifiedExplanation(null);
       resetTimer();
+      quizCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [quizData, currentQuestionIndex, resetTimer]);
 
+  // Timer logic
   useEffect(() => {
-    if (!quizData) return;
+    if (!quizData || isAnswered) return; // Pause timer when answered
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -64,19 +78,32 @@ export default function QuizClient() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentQuestionIndex, quizData, handleNext]);
-
-  const handlePrev = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1);
-      resetTimer();
-    }
-  };
+  }, [currentQuestionIndex, quizData, handleNext, isAnswered]);
 
   const handleAnswerChange = (value: string) => {
+    if (isAnswered) return;
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = parseInt(value, 10);
     setAnswers(newAnswers);
+    setIsAnswered(true);
+  };
+
+  const handleSimplify = async () => {
+    if (!quizData || !currentQuestion.explanation) return;
+    setIsSimplifying(true);
+    setSimplifiedExplanation(null);
+    try {
+        const result = await handleSimplifyExplanation({ textToSimplify: currentQuestion.explanation });
+        if (result.success && result.data) {
+            setSimplifiedExplanation(result.data.simplifiedText);
+        } else {
+            toast({ variant: "destructive", title: "Could not simplify explanation", description: result.error });
+        }
+    } catch (error) {
+        toast({ variant: "destructive", title: "Error", description: "An unexpected error occurred while simplifying." });
+    } finally {
+        setIsSimplifying(false);
+    }
   };
 
   const handleSubmit = () => {
@@ -105,9 +132,15 @@ export default function QuizClient() {
 
     const history = JSON.parse(localStorage.getItem("quizHistory") || "[]");
     history.unshift(result);
-    localStorage.setItem("quizHistory", JSON.stringify(history.slice(0, 10))); // limit history
+    localStorage.setItem("quizHistory", JSON.stringify(history.slice(0, 10)));
 
     router.push("/results");
+  };
+
+  const createMarkup = (text: string) => {
+    if (!text) return { __html: '' };
+    const boldedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    return { __html: boldedText };
   };
 
   if (!quizData) {
@@ -122,7 +155,7 @@ export default function QuizClient() {
   const progressPercentage = ((currentQuestionIndex + 1) / quizData.quiz.length) * 100;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto" ref={quizCardRef}>
       <Progress value={progressPercentage} className="mb-4" />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -141,57 +174,88 @@ export default function QuizClient() {
             value={answers[currentQuestionIndex]?.toString()}
             onValueChange={handleAnswerChange}
             className="space-y-4"
+            disabled={isAnswered}
           >
-            {currentQuestion.options.map((option, index) => (
+            {currentQuestion.options.map((option, index) => {
+              const userAnswerIndex = answers[currentQuestionIndex];
+              const isCorrectAnswer = index === currentQuestion.correctAnswerIndex;
+              const isUserSelection = index === userAnswerIndex;
+
+              return (
               <Label
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
                   "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
                   "hover:bg-secondary",
-                  "has-[input:checked]:bg-green-100 has-[input:checked]:border-green-500 has-[input:checked]:text-green-900 dark:has-[input:checked]:bg-green-900 dark:has-[input:checked]:text-green-100"
+                  isAnswered && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
+                  isAnswered && isUserSelection && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100",
+                  isAnswered && !isUserSelection && !isCorrectAnswer && "opacity-60"
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
                 <span className="font-bold mr-4">{String.fromCharCode(65 + index)}</span>
                 <span>{option}</span>
               </Label>
-            ))}
+            )})}
           </RadioGroup>
+
+          {isAnswered && currentQuestion.explanation && (
+            <div className="mt-6 rounded-lg border border-primary/20 bg-primary/10 p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                      <HelpCircle className="h-5 w-5 text-primary" />
+                      <h4 className="font-bold font-headline text-primary">Explanation</h4>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={handleSimplify} disabled={isSimplifying}>
+                      {isSimplifying ? <Loader2 className="mr-2 animate-spin" /> : <Lightbulb className="mr-2" />}
+                      Explain Like I'm 5
+                  </Button>
+              </div>
+              <div
+                  className="text-sm text-foreground/80"
+                  dangerouslySetInnerHTML={createMarkup(currentQuestion.explanation)}
+              />
+              {isSimplifying && <Skeleton className="h-12 w-full mt-2" />}
+              {simplifiedExplanation && (
+                   <div className="mt-4 p-3 rounded-md border border-amber-500/50 bg-amber-500/10">
+                      <p className="text-sm text-foreground/90" dangerouslySetInnerHTML={createMarkup(simplifiedExplanation)} />
+                  </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
-      <div className="flex justify-between mt-6">
-        <Button variant="outline" onClick={handlePrev} disabled={currentQuestionIndex === 0}>
-          <ArrowLeft />
-          Previous
-        </Button>
-
-        {currentQuestionIndex === quizData.quiz.length - 1 ? (
-           <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button>
-                <CheckCircle />
-                Submit
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure you want to submit?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Please review your answers before submitting. You cannot change them after this point.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleSubmit}>Submit</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        ) : (
-          <Button onClick={handleNext}>
-            Next
-            <ArrowRight />
-          </Button>
+      
+      <div className="flex justify-end mt-6 h-11">
+        {isAnswered && (
+          currentQuestionIndex === quizData.quiz.length - 1 ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button>
+                  <CheckCircle />
+                  Submit
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to submit?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Please review your answers before submitting. You cannot change them after this point.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleSubmit}>Submit</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <Button onClick={handleNext}>
+              Next
+              <ArrowRight />
+            </Button>
+          )
         )}
       </div>
     </div>
