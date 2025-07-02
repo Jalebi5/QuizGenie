@@ -14,6 +14,7 @@ const GenerateQuizInputSchema = z.object({
   documentText: z.string().describe('The extracted text content from the document.'),
   numberOfQuestions: z.number().min(1).max(500).default(10).describe('The number of questions to generate for the quiz.'),
   optionsPerQuestion: z.number().min(4).max(5).default(4).describe('The number of answer options to generate per question.'),
+  enrichExplanations: z.boolean().optional().default(false).describe('Whether to generate detailed explanations for each answer.'),
 });
 export type GenerateQuizInput = z.infer<typeof GenerateQuizInputSchema>;
 
@@ -23,7 +24,7 @@ const GenerateQuizOutputSchema = z.object({
       question: z.string().describe('The quiz question.'),
       options: z.array(z.string()).describe('The answer options for the question.'),
       correctAnswerIndex: z.number().min(0).describe('The index of the correct answer in the options array.'),
-      explanation: z.string().describe('A brief explanation of why the correct answer is correct, with important points in bold using Markdown (e.g., **this is important**).'),
+      explanation: z.string().optional().describe('A brief explanation of why the correct answer is correct, with important points in bold using Markdown (e.g., **this is important**).'),
     })
   ).describe('The generated quiz questions and answers.'),
 });
@@ -39,7 +40,9 @@ const generateQuizPrompt = ai.definePrompt({
   output: {schema: GenerateQuizOutputSchema},
   prompt: `You are a quiz generator expert. Given the following document text, generate a quiz with the specified number of questions and options per question.
 
+{{#if enrichExplanations}}
 For each question, also provide a concise explanation for why the correct answer is correct. Highlight the most important parts of the explanation in bold using Markdown syntax (e.g., **this is important**).
+{{/if}}
 
 Document Text: {{{documentText}}}
 

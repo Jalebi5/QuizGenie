@@ -5,19 +5,19 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, Wand2 } from "lucide-react";
+import { Loader2, Settings } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,13 +33,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { handleGenerateQuiz } from "@/lib/actions";
 import { type StoredQuizData } from "@/types/quiz";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
 const formSchema = z.object({
   numberOfQuestions: z.string(),
-  optionsPerQuestion: z.enum(["4", "5"]),
   timer: z.enum(["15", "30", "45", "60"]),
+  enrichExplanations: z.boolean().default(false),
 });
 
 export default function ConfigureStep() {
@@ -61,9 +62,9 @@ export default function ConfigureStep() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      numberOfQuestions: "10",
-      optionsPerQuestion: "4",
+      numberOfQuestions: "5",
       timer: "30",
+      enrichExplanations: false,
     },
   });
 
@@ -82,7 +83,7 @@ export default function ConfigureStep() {
 
     const numericValues = {
       numberOfQuestions: parseInt(values.numberOfQuestions, 10),
-      optionsPerQuestion: parseInt(values.optionsPerQuestion, 10),
+      optionsPerQuestion: 4, // Hardcoded as per UI change
       timer: parseInt(values.timer, 10),
     };
 
@@ -90,6 +91,7 @@ export default function ConfigureStep() {
       documentText, 
       numberOfQuestions: numericValues.numberOfQuestions,
       optionsPerQuestion: numericValues.optionsPerQuestion,
+      enrichExplanations: values.enrichExplanations,
      });
     setIsGenerating(false);
 
@@ -114,10 +116,10 @@ export default function ConfigureStep() {
     <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Step 3: Configure Quiz</CardTitle>
-            <CardDescription>
-              Adjust the settings for your generated quiz.
-            </CardDescription>
+            <CardTitle className="font-headline flex items-center gap-2">
+              <Settings className="h-6 w-6" />
+              Quiz Settings
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -136,7 +138,7 @@ export default function ConfigureStep() {
                         </FormControl>
                         <SelectContent>
                           {questionCountOptions.map((option) => (
-                             <SelectItem key={option} value={option}>{option} Questions</SelectItem>
+                             <SelectItem key={option} value={option}>{option}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -144,33 +146,13 @@ export default function ConfigureStep() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="optionsPerQuestion"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Options per Question</FormLabel>
-                       <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select number of options" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="4">4 Options</SelectItem>
-                          <SelectItem value="5">5 Options</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
                 <FormField
                   control={form.control}
                   name="timer"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Timer per Question</FormLabel>
+                      <FormLabel>Time per Question</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                          <FormControl>
                           <SelectTrigger>
@@ -188,6 +170,27 @@ export default function ConfigureStep() {
                     </FormItem>
                   )}
                 />
+
+                <FormField
+                  control={form.control}
+                  name="enrichExplanations"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Enrich Explanations
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
                 <Button type="submit" className="w-full" disabled={isGenerating || !documentText}>
                   {isGenerating ? (
                     <>
@@ -195,10 +198,7 @@ export default function ConfigureStep() {
                       Generating...
                     </>
                   ) : (
-                    <>
-                      <Wand2 className="mr-2 h-4 w-4" />
-                      Generate Quiz
-                    </>
+                    "Generate Quiz"
                   )}
                 </Button>
               </form>
