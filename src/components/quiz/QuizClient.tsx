@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle, Clock, HelpCircle, Lightbulb, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, HelpCircle, Lightbulb, Loader2 } from "lucide-react";
 import {
   Quiz,
   StoredQuizData,
@@ -30,10 +30,10 @@ export default function QuizClient() {
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
 
-  // New state for instant feedback and explanations
-  const [isAnswered, setIsAnswered] = useState(false);
   const [simplifiedExplanation, setSimplifiedExplanation] = useState<string | null>(null);
   const [isSimplifying, setIsSimplifying] = useState(false);
+  
+  const isAnswered = quizData ? answers[currentQuestionIndex] !== null : false;
 
   useEffect(() => {
     const data = sessionStorage.getItem("quizData");
@@ -56,16 +56,24 @@ export default function QuizClient() {
   const handleNext = useCallback(() => {
     if (quizData && currentQuestionIndex < quizData.quiz.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
-      setIsAnswered(false);
       setSimplifiedExplanation(null);
       resetTimer();
       quizCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [quizData, currentQuestionIndex, resetTimer]);
+  
+  const handlePrevious = useCallback(() => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prev) => prev - 1);
+      setSimplifiedExplanation(null);
+      resetTimer();
+      quizCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [currentQuestionIndex, resetTimer]);
 
   // Timer logic
   useEffect(() => {
-    if (!quizData || isAnswered) return; // Pause timer when answered
+    if (!quizData || isAnswered || quizData.quizMode !== 'perQuestion') return;
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -85,7 +93,6 @@ export default function QuizClient() {
     const newAnswers = [...answers];
     newAnswers[currentQuestionIndex] = parseInt(value, 10);
     setAnswers(newAnswers);
-    setIsAnswered(true);
   };
 
   const handleSimplify = async () => {
@@ -197,8 +204,9 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
-                  "hover:bg-secondary",
+                  "flex items-center p-4 border rounded-lg transition-colors",
+                  !isAnswered && "cursor-pointer hover:bg-secondary",
+                  isAnswered && "cursor-not-allowed",
                   isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
                   isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100",
                   isAnswered && quizData.explanationTiming === 'end' && isSelected && "border-primary bg-primary/10",
@@ -238,35 +246,36 @@ export default function QuizClient() {
         </CardContent>
       </Card>
       
-      <div className="flex justify-end mt-6 h-11">
-        {isAnswered && (
-          currentQuestionIndex === quizData.quiz.length - 1 ? (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button>
-                  <CheckCircle />
-                  Submit
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure you want to submit?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Please review your answers before submitting. You cannot change them after this point.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleSubmit}>Submit</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          ) : (
-            <Button onClick={handleNext}>
-              Next
-              <ArrowRight />
-            </Button>
-          )
+      <div className="flex justify-between mt-6 h-11">
+        <Button variant="outline" onClick={handlePrevious} disabled={currentQuestionIndex === 0}>
+            <ArrowLeft /> Previous
+        </Button>
+        {currentQuestionIndex === quizData.quiz.length - 1 ? (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button>
+                <CheckCircle />
+                Submit
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to submit?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You can still go back and review your answers. Once submitted, the quiz will end.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleSubmit}>Submit</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        ) : (
+          <Button onClick={handleNext}>
+            Next
+            <ArrowRight />
+          </Button>
         )}
       </div>
     </div>
