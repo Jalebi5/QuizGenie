@@ -38,7 +38,7 @@ export default function QuizClient() {
   const [simplifiedExplanation, setSimplifiedExplanation] = useState<string | null>(null);
   const [isSimplifying, setIsSimplifying] = useState(false);
   
-  const isAnswered = quizData ? answers[currentQuestionIndex] !== null : false;
+  const isAnswered = answers[currentQuestionIndex] !== null;
 
   useEffect(() => {
     if (!quizData) {
@@ -213,15 +213,15 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "flex items-start p-4 border rounded-lg transition-colors gap-4",
+                  "flex items-center p-4 border rounded-lg transition-colors gap-4",
                   !isAnswered && "cursor-pointer hover:bg-secondary",
-                  isSelected && !isAnswered && "border-primary bg-primary/10",
+                  isSelected && !isAnswered && "border-green-500 bg-green-100 dark:bg-green-900",
                   isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "!border-green-500 !bg-green-100 dark:!bg-green-900 !text-green-900 dark:!text-green-100",
                   isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "!border-red-500 !bg-red-100 dark:!bg-red-900 !text-red-900 dark:!text-red-100",
                   isAnswered && "cursor-not-allowed"
                 )}
               >
-                <RadioGroupItem value={index.toString()} id={`option-${index}`} className="mt-1 flex-shrink-0" />
+                <RadioGroupItem value={index.toString()} id={`option-${index}`} className="flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <span className="font-bold">{String.fromCharCode(65 + index)}. </span>
                   <span className="break-words">{option}</span>
