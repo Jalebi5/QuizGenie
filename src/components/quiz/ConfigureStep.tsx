@@ -66,11 +66,7 @@ export default function ConfigureStep() {
 
   useEffect(() => {
     const text = sessionStorage.getItem("documentText");
-    const selectedText = sessionStorage.getItem("selectedText");
-    if (selectedText) {
-      setDocumentText(selectedText);
-      sessionStorage.removeItem("selectedText"); 
-    } else if (text) {
+    if (text) {
       setDocumentText(text);
     } else {
       router.push('/');
@@ -124,7 +120,6 @@ export default function ConfigureStep() {
       documentText, 
       ...quizConfig
      });
-    setIsGenerating(false);
 
     if (result.success && result.data) {
       const storedData: StoredQuizData = {
@@ -143,6 +138,7 @@ export default function ConfigureStep() {
         title: "Error",
         description: result.error,
       });
+      setIsGenerating(false);
     }
   }
 

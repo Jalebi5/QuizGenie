@@ -64,7 +64,6 @@ export default function UploadStep() {
           title: "Extraction Failed",
           description: "Could not extract text from the document. Please try again.",
         });
-      } finally {
         setIsExtracting(false);
       }
     }

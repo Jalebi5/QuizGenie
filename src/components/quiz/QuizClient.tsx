@@ -177,9 +177,7 @@ export default function QuizClient() {
             disabled={isAnswered}
           >
             {currentQuestion.options.map((option, index) => {
-              const userAnswerIndex = answers[currentQuestionIndex];
               const isCorrectAnswer = index === currentQuestion.correctAnswerIndex;
-              const isUserSelection = index === userAnswerIndex;
 
               return (
               <Label
@@ -189,8 +187,7 @@ export default function QuizClient() {
                   "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
                   "hover:bg-secondary",
                   isAnswered && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
-                  isAnswered && isUserSelection && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100",
-                  isAnswered && !isUserSelection && !isCorrectAnswer && "opacity-60"
+                  isAnswered && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100"
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
