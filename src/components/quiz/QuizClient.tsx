@@ -218,11 +218,9 @@ export default function QuizClient() {
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="mt-1" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start space-x-2">
-                      <span className="font-bold">{String.fromCharCode(65 + index)}.</span>
-                      <span className="break-words">{option}</span>
-                  </div>
+                <div className="flex flex-1 items-baseline gap-2 min-w-0">
+                  <span className="font-bold">{String.fromCharCode(65 + index)}.</span>
+                  <span className="break-words">{option}</span>
                 </div>
               </Label>
             )})}
