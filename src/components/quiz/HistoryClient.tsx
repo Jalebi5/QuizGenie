@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -82,7 +83,7 @@ export default function HistoryClient() {
             {history.map((item, index) => (
               <TableRow key={index}>
                 <TableCell>{format(new Date(item.time), "PPp")}</TableCell>
-                <TableCell className="max-w-[250px] truncate">{item.topic}</TableCell>
+                <TableCell className="max-w-[250px] break-words">{item.topic}</TableCell>
                 <TableCell className="text-center">
                   <Badge variant={item.accuracy > 60 ? "default" : "destructive"} className={item.accuracy > 60 ? "bg-green-600" : ""}>
                     {item.accuracy.toFixed(0)}%
@@ -108,7 +109,7 @@ export default function HistoryClient() {
           {history.map((item, index) => (
             <Card key={index} className="w-full">
               <CardContent className="p-4 grid grid-cols-2 gap-x-4 gap-y-2">
-                <div className="col-span-2">
+                <div className="col-span-2 min-w-0">
                   <p className="text-sm text-muted-foreground">Topic</p>
                   <p className="font-medium break-words">{item.topic}</p>
                 </div>

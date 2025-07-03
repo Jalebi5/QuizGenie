@@ -119,7 +119,7 @@ export default function ResultsClient() {
             <Card>
               <CardHeader>
                 <CardDescription>Topic</CardDescription>
-                <CardTitle className="text-lg font-normal pt-2 break-words">{quizResult.topic}</CardTitle>
+                <CardTitle className="text-lg font-normal pt-2 break-words min-w-0">{quizResult.topic}</CardTitle>
               </CardHeader>
             </Card>
           </div>
@@ -158,12 +158,14 @@ export default function ResultsClient() {
                             <li
                               key={oIndex}
                               className={cn(
-                                "flex p-3 rounded-md border",
+                                "flex p-3 rounded-md border items-start",
                                 isCorrectAnswer ? "bg-green-100 dark:bg-green-900 border-green-500" : "",
                                 isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900 border-red-500" : ""
                               )}
                             >
-                              <span className="break-words flex-1 min-w-0">{option}</span>
+                              <div className="flex-1 min-w-0">
+                                <span className="break-words">{option}</span>
+                              </div>
                               {isUserAnswer && !isCorrectAnswer && <span className="ml-auto pl-2 text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
                               {isCorrectAnswer && <span className="ml-auto pl-2 text-sm font-semibold text-green-600 whitespace-nowrap">(Correct Answer)</span>}
                             </li>
