@@ -29,22 +29,30 @@ export default function QuizClient() {
 
   const { quizData, setQuizResult } = useQuizCreation();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>([]);
-  const [timeLeft, setTimeLeft] = useState(30);
+  
+  // Synchronously initialize state from quizData to prevent hydration/state mismatches
+  const [answers, setAnswers] = useState<(number | null)[]>(() => 
+    quizData ? Array(quizData.quiz.length).fill(null) : []
+  );
+  const [timeLeft, setTimeLeft] = useState(quizData?.timer || 30);
 
   const [simplifiedExplanation, setSimplifiedExplanation] = useState<string | null>(null);
   const [isSimplifying, setIsSimplifying] = useState(false);
   
-  const isAnswered = quizData ? answers[currentQuestionIndex] !== null : false;
+  const isAnswered = quizData && answers.length > 0 ? answers[currentQuestionIndex] !== null : false;
 
   useEffect(() => {
-    if (quizData) {
-      setAnswers(Array(quizData.quiz.length).fill(null));
-      setTimeLeft(quizData.timer);
-    } else {
+    if (!quizData) {
       router.push("/upload");
+    } else {
+        // This handles re-initialization if the quizData object itself changes
+        // (e.g., starting a new quiz from history).
+        if (answers.length !== quizData.quiz.length) {
+            setAnswers(Array(quizData.quiz.length).fill(null));
+            setTimeLeft(quizData.timer);
+        }
     }
-  }, [quizData, router]);
+  }, [quizData, router, answers.length]);
 
   const resetTimer = useCallback(() => {
     if (quizData) {
@@ -209,7 +217,7 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "flex items-start gap-4 p-4 border rounded-lg transition-colors",
+                  "flex items-center gap-4 p-4 border rounded-lg transition-colors",
                   !isAnswered && "cursor-pointer hover:bg-secondary",
                   isSelected && "border-primary bg-primary/10",
                   isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "!border-green-500 !bg-green-100 dark:!bg-green-900 !text-green-900 dark:!text-green-100",
@@ -217,10 +225,10 @@ export default function QuizClient() {
                   isAnswered && "cursor-not-allowed"
                 )}
               >
-                <RadioGroupItem value={index.toString()} id={`option-${index}`} className="mt-1" />
-                <div className="flex flex-1 items-baseline gap-2 min-w-0">
-                  <span className="font-bold">{String.fromCharCode(65 + index)}.</span>
-                  <span className="break-words">{option}</span>
+                <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                <div className="flex-1 min-w-0">
+                  <span className="font-bold">{String.fromCharCode(65 + index)}. </span>
+                  <span>{option}</span>
                 </div>
               </Label>
             )})}
