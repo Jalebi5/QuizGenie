@@ -33,7 +33,10 @@ export default function ResultsClient() {
   };
   
   const handleRetakeIncorrect = () => {
-    if (!quizResult || !quizResult.config) return;
+    if (!quizResult || !quizResult.config) {
+        toast({ title: "Cannot Retake Quiz", description: "Quiz configuration is missing."});
+        return;
+    }
 
     const incorrectQuestions = quizResult.quiz.filter((_, qIndex) => 
         quizResult.answers[qIndex] !== quizResult.quiz[qIndex].correctAnswerIndex
@@ -74,7 +77,7 @@ export default function ResultsClient() {
     <div className="max-w-4xl mx-auto" id="results-to-print">
       {isSuccess && <Confetti />}
       <Card className="overflow-hidden">
-        <CardHeader className="text-center p-6 bg-secondary/50">
+        <CardHeader className="relative text-center p-6 bg-secondary/50">
           <div className="flex justify-end gap-2 absolute top-4 right-4 no-print">
             <Button variant="outline" size="sm" onClick={handleRetakeIncorrect} disabled={!quizResult.config || incorrectCount === 0}>
                 <Redo /> Retake Incorrect

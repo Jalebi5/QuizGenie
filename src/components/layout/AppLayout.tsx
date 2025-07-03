@@ -62,9 +62,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <Header />
-        <main className="flex-grow flex flex-col p-4 sm:p-6 md:p-8">
+        <div className="flex-grow flex flex-col p-4 sm:p-6 md:p-8">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );
