@@ -145,7 +145,7 @@ export default function ResultsClient() {
                     <AccordionTrigger>
                       <div className="flex items-center gap-2 w-full">
                         {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0" /> : <X className="h-5 w-5 text-destructive flex-shrink-0" />}
-                        <span className="text-left flex-1 break-words">{qIndex + 1}. {question.question}</span>
+                        <span className="text-left flex-1 break-all min-w-0">{qIndex + 1}. {question.question}</span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
@@ -157,7 +157,7 @@ export default function ResultsClient() {
                             <li
                               key={oIndex}
                               className={cn(
-                                "p-3 rounded-md border break-words",
+                                "p-3 rounded-md border break-all",
                                 isCorrectAnswer ? "bg-green-100 dark:bg-green-900 border-green-500" : "",
                                 isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900 border-red-500" : ""
                               )}

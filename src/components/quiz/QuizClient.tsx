@@ -185,7 +185,7 @@ export default function QuizClient() {
             )}
         </CardHeader>
         <CardContent className="p-6">
-          <h2 className="text-2xl font-bold font-headline mb-6 break-words">
+          <h2 className="text-2xl font-bold font-headline mb-6 break-all">
             {currentQuestion.question}
           </h2>
 
@@ -213,7 +213,7 @@ export default function QuizClient() {
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
                 <span className="font-bold mr-4">{String.fromCharCode(65 + index)}</span>
-                <span className="break-words flex-1">{option}</span>
+                <span className="break-all flex-1 min-w-0">{option}</span>
               </Label>
             )})}
           </RadioGroup>
