@@ -209,24 +209,24 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "flex items-center p-4 border rounded-lg transition-colors",
+                  "grid grid-cols-[auto_1fr] items-center gap-4 p-4 border rounded-lg transition-colors",
+                  // Base states for before an answer is selected
                   !isAnswered && "cursor-pointer hover:bg-secondary",
-                  isAnswered && "cursor-not-allowed",
                   
-                  // Style for the selected but not-yet-answered state
-                  isSelected && !isAnswered && "border-primary bg-primary/10",
+                  // General style for when an option is selected. This provides immediate feedback.
+                  isSelected && "border-primary bg-primary/10",
 
-                  // These styles apply after an answer is locked in.
+                  // When answer is locked in, these styles will override the general 'isSelected' style.
                   isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "!border-green-500 !bg-green-100 dark:!bg-green-900 !text-green-900 dark:!text-green-100",
                   isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "!border-red-500 !bg-red-100 dark:!bg-red-900 !text-red-900 dark:!text-red-100",
-
-                  // Style for "explanation at end" mode
-                  isAnswered && isSelected && quizData.explanationTiming === 'end' && "border-primary bg-primary/10"
+                  
+                  // When an answer is locked in, the whole group is disabled.
+                  isAnswered && "cursor-not-allowed"
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
-                <span className="font-bold mr-4">{String.fromCharCode(65 + index)}</span>
-                <span className="flex-1 min-w-0 break-words">{option}</span>
+                <span className="font-bold">{String.fromCharCode(65 + index)}</span>
+                <span className="break-words">{option}</span>
               </Label>
             )})}
           </RadioGroup>
