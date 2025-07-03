@@ -14,21 +14,19 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Highlighter } from "lucide-react";
+import { useQuizCreation } from "@/hooks/use-quiz-creation";
 
 export default function ReviewStep() {
   const router = useRouter();
   const { toast } = useToast();
-  const [documentText, setDocumentText] = useState("");
+  const { documentText, setDocumentText } = useQuizCreation();
   const [selectedText, setSelectedText] = useState("");
 
   useEffect(() => {
-    const text = sessionStorage.getItem("documentText");
-    if (text) {
-      setDocumentText(text);
-    } else {
-      router.push("/");
+    if (!documentText) {
+      router.push("/upload");
     }
-  }, [router]);
+  }, [documentText, router]);
   
   const handleSelectionChange = useCallback(() => {
     const selection = window.getSelection()?.toString() || "";
@@ -47,7 +45,7 @@ export default function ReviewStep() {
   }, [handleSelectionChange]);
 
   const handleNext = () => {
-    const textToUse = selectedText || documentText;
+    const textToUse = selectedText || documentText || "";
     if (textToUse.length < 50) {
       toast({
         variant: "destructive",
@@ -56,7 +54,7 @@ export default function ReviewStep() {
       });
       return;
     }
-    sessionStorage.setItem("documentText", textToUse);
+    setDocumentText(textToUse);
     router.push('/configure');
   };
 
@@ -71,7 +69,7 @@ export default function ReviewStep() {
         </CardHeader>
         <CardContent>
           <Textarea
-            value={documentText}
+            value={documentText || ""}
             onChange={(e) => setDocumentText(e.target.value)}
             placeholder="Extracted text will appear here..."
             rows={20}

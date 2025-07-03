@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { UploadCloud, Loader2, CheckCircle, FileText } from "lucide-react";
+import { UploadCloud, Loader2, CheckCircle, FileText, Trash2, XCircle } from "lucide-react";
 
 import {
   Card,
@@ -15,13 +15,14 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { handleExtractText } from "@/lib/actions";
 import { Button } from "../ui/button";
+import { useQuizCreation } from "@/hooks/use-quiz-creation";
 
 export default function UploadStep() {
   const router = useRouter();
   const { toast } = useToast();
   const [isExtracting, setIsExtracting] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadedFiles, setUploadedFiles, setDocumentText } = useQuizCreation();
 
   const fileToDataUri = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -49,6 +50,14 @@ export default function UploadStep() {
       setUploadedFiles(prev => [...prev, ...validFiles]);
     }
   };
+
+  const handleRemoveFile = (indexToRemove: number) => {
+    setUploadedFiles(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+  
+  const handleClearAll = () => {
+    setUploadedFiles([]);
+  };
   
   const processFiles = async () => {
       if(uploadedFiles.length === 0) {
@@ -67,7 +76,7 @@ export default function UploadStep() {
         const result = await handleExtractText({ photoDataUris });
 
         if (result.success && result.data) {
-          sessionStorage.setItem("documentText", result.data.text);
+          setDocumentText(result.data.text);
           toast({
             title: "Text Extracted",
             description: "Text has been successfully extracted from your documents.",
@@ -82,6 +91,7 @@ export default function UploadStep() {
           title: "Extraction Failed",
           description: "Could not extract text from the document. Please try again.",
         });
+      } finally {
         setIsExtracting(false);
       }
   };
@@ -140,12 +150,23 @@ export default function UploadStep() {
           </div>
           {uploadedFiles.length > 0 && !isExtracting && (
             <div className="mt-4 space-y-2">
-                <h4 className="font-semibold">Selected files:</h4>
+                <div className="flex justify-between items-center">
+                    <h4 className="font-semibold">Selected files:</h4>
+                    <Button variant="ghost" size="sm" onClick={handleClearAll} className="text-muted-foreground">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear All
+                    </Button>
+                </div>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                     {uploadedFiles.map((file, index) => (
-                        <li key={index} className="flex items-center gap-2 bg-secondary p-2 rounded-md">
-                            <FileText className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{file.name}</span>
+                        <li key={index} className="flex items-center justify-between gap-2 bg-secondary p-2 rounded-md">
+                            <div className="flex items-center gap-2 truncate">
+                                <FileText className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate" title={file.name}>{file.name}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground" onClick={() => handleRemoveFile(index)}>
+                                <XCircle className="h-4 w-4" />
+                            </Button>
                         </li>
                     ))}
                 </ul>
@@ -153,11 +174,19 @@ export default function UploadStep() {
           )}
         </CardContent>
         <CardFooter className="flex-col gap-4 items-center justify-center pt-4">
-          {uploadedFiles.length > 0 && !isExtracting && (
-            <Button onClick={processFiles} size="lg" className="w-full">
-                <CheckCircle /> Extract Text from {uploadedFiles.length} file(s)
-            </Button>
-          )}
+          <Button onClick={processFiles} size="lg" className="w-full" disabled={isExtracting || uploadedFiles.length === 0}>
+              {isExtracting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Extracting...
+                  </>
+              ) : (
+                  <>
+                    <CheckCircle />
+                    {`Continue with ${uploadedFiles.length} file(s)`}
+                  </>
+              )}
+          </Button>
           <p className="text-sm text-muted-foreground">Powered by Google Gemini.</p>
         </CardFooter>
       </Card>

@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { handleGenerateQuiz } from "@/lib/actions";
 import { type GenerateQuizInput, type StoredQuizData } from "@/types/quiz";
+import { useQuizCreation } from "@/hooks/use-quiz-creation";
 
 const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
@@ -61,16 +62,13 @@ export default function ConfigureStep() {
   const router = useRouter();
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [documentText, setDocumentText] = useState<string | null>(null);
+  const { documentText, setQuizData } = useQuizCreation();
 
   useEffect(() => {
-    const text = sessionStorage.getItem("documentText");
-    if (text) {
-      setDocumentText(text);
-    } else {
-      router.push('/');
+    if (!documentText) {
+      router.push('/upload');
     }
-  }, [router]);
+  }, [documentText, router]);
 
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -96,7 +94,7 @@ export default function ConfigureStep() {
         title: "Error",
         description: "Document text not found. Please start over.",
       });
-      router.push('/');
+      router.push('/upload');
       return;
     }
     
@@ -133,7 +131,7 @@ export default function ConfigureStep() {
         keywords: values.keywords,
         explanationTiming: values.explanationTiming,
       };
-      sessionStorage.setItem("quizData", JSON.stringify(storedData));
+      setQuizData(storedData);
       router.push("/quiz");
     } else {
       toast({

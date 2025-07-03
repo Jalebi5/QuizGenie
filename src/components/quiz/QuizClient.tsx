@@ -19,13 +19,14 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { handleSimplifyExplanation } from "@/lib/actions";
 import { Skeleton } from "../ui/skeleton";
+import { useQuizCreation } from "@/hooks/use-quiz-creation";
 
 export default function QuizClient() {
   const router = useRouter();
   const { toast } = useToast();
   const quizCardRef = useRef<HTMLDivElement>(null);
 
-  const [quizData, setQuizData] = useState<StoredQuizData | null>(null);
+  const { quizData, setQuizResult } = useQuizCreation();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [timeLeft, setTimeLeft] = useState(30);
@@ -36,16 +37,13 @@ export default function QuizClient() {
   const isAnswered = quizData ? answers[currentQuestionIndex] !== null : false;
 
   useEffect(() => {
-    const data = sessionStorage.getItem("quizData");
-    if (data) {
-      const parsedData: StoredQuizData = JSON.parse(data);
-      setQuizData(parsedData);
-      setAnswers(Array(parsedData.quiz.length).fill(null));
-      setTimeLeft(parsedData.timer);
+    if (quizData) {
+      setAnswers(Array(quizData.quiz.length).fill(null));
+      setTimeLeft(quizData.timer);
     } else {
-      router.push("/");
+      router.push("/upload");
     }
-  }, [router]);
+  }, [quizData, router]);
 
   const resetTimer = useCallback(() => {
     if (quizData) {
@@ -145,7 +143,7 @@ export default function QuizClient() {
       }
     };
 
-    sessionStorage.setItem("quizResult", JSON.stringify(result));
+    setQuizResult(result);
 
     const history = JSON.parse(localStorage.getItem("quizHistory") || "[]");
     history.unshift(result);

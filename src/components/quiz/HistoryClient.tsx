@@ -16,10 +16,12 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useQuizCreation } from "@/hooks/use-quiz-creation";
 
 export default function HistoryClient() {
   const [history, setHistory] = useState<QuizResult[]>([]);
   const router = useRouter();
+  const { setQuizResult, setQuizData } = useQuizCreation();
 
   useEffect(() => {
     const storedHistory = localStorage.getItem("quizHistory");
@@ -29,7 +31,7 @@ export default function HistoryClient() {
   }, []);
 
   const handleReview = (quizResult: QuizResult) => {
-    sessionStorage.setItem("quizResult", JSON.stringify(quizResult));
+    setQuizResult(quizResult);
     router.push("/results");
   };
 
@@ -44,7 +46,7 @@ export default function HistoryClient() {
       documentText: `Retake of quiz on "${quizResult.topic}"`,
       ...quizResult.config,
     };
-    sessionStorage.setItem("quizData", JSON.stringify(storedData));
+    setQuizData(storedData);
     router.push("/quiz");
   };
 
