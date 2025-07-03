@@ -144,9 +144,9 @@ export default function ResultsClient() {
                 return (
                   <AccordionItem value={`item-${qIndex}`} key={qIndex}>
                     <AccordionTrigger>
-                      <div className="flex items-center gap-2 w-full">
-                        {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0" /> : <X className="h-5 w-5 text-destructive flex-shrink-0" />}
-                        <span className="text-left flex-1 break-words min-w-0">{qIndex + 1}. {question.question}</span>
+                      <div className="flex items-start gap-2 w-full">
+                        {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-1" /> : <X className="h-5 w-5 text-destructive flex-shrink-0 mt-1" />}
+                        <div className="text-left flex-1 break-words min-w-0">{qIndex + 1}. {question.question}</div>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
@@ -158,13 +158,13 @@ export default function ResultsClient() {
                             <li
                               key={oIndex}
                               className={cn(
-                                "flex p-3 rounded-md border items-center justify-between",
+                                "flex p-3 rounded-md border items-start",
                                 isCorrectAnswer ? "bg-green-100 dark:bg-green-900 border-green-500" : "",
                                 isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900 border-red-500" : ""
                               )}
                             >
                               <div className="flex-1 min-w-0 pr-4">
-                                <p className="break-words">{option}</p>
+                                <p className="break-words">{String.fromCharCode(65 + oIndex)}. {option}</p>
                               </div>
                               <div className="flex-shrink-0">
                                 {isUserAnswer && !isCorrectAnswer && <span className="text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
