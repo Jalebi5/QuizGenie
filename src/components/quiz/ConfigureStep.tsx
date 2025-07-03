@@ -36,8 +36,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { handleGenerateQuiz } from "@/lib/actions";
-import { type StoredQuizData } from "@/types/quiz";
-import { Label } from "../ui/label";
+import { type GenerateQuizInput, type StoredQuizData } from "@/types/quiz";
 
 const questionCountOptions = ["5", "10", "15", "20", "25", "50", "75", "100", "150", "200", "300", "400", "500"] as const;
 
@@ -107,7 +106,7 @@ export default function ConfigureStep() {
         ? parseInt(values.timerPerQuestion || "30", 10) 
         : parseInt(values.timerTotal || "10", 10) * 60;
 
-    const quizConfig = {
+    const generateQuizInput: Omit<GenerateQuizInput, 'documentText'> = {
       numberOfQuestions: parseInt(values.numberOfQuestions, 10),
       optionsPerQuestion: 4,
       difficulty: values.difficulty,
@@ -118,16 +117,20 @@ export default function ConfigureStep() {
 
     const result = await handleGenerateQuiz({ 
       documentText, 
-      ...quizConfig
+      ...generateQuizInput
      });
 
     if (result.success && result.data) {
       const storedData: StoredQuizData = {
         quiz: result.data.quiz,
         documentText,
-        ...quizConfig,
-        quizMode: values.quizMode,
+        numberOfQuestions: parseInt(values.numberOfQuestions, 10),
+        optionsPerQuestion: 4,
         timer: timerValue,
+        quizMode: values.quizMode,
+        difficulty: values.difficulty,
+        questionType: values.questionType,
+        keywords: values.keywords,
         explanationTiming: values.explanationTiming,
       };
       sessionStorage.setItem("quizData", JSON.stringify(storedData));
@@ -157,7 +160,7 @@ export default function ConfigureStep() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Accordion type="multiple" defaultValue={["basic", "advanced"]} className="w-full">
+                <Accordion type="single" defaultValue="basic" collapsible className="w-full">
                     <AccordionItem value="basic">
                         <AccordionTrigger>
                             <h3 className="text-lg font-semibold font-headline flex items-center gap-2"><Wand2/> Basic Settings</h3>

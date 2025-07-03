@@ -1,5 +1,6 @@
 import { type GenerateQuizInput, type GenerateQuizOutput } from "@/ai/flows/generate-quiz";
 
+export type { GenerateQuizInput } from "@/ai/flows/generate-quiz";
 export type Quiz = GenerateQuizOutput["quiz"];
 export type Question = Quiz[0];
 
