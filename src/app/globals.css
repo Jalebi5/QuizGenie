@@ -119,20 +119,22 @@
   }
 }
 
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  #results-to-print, #results-to-print * {
-    visibility: visible;
-  }
-  #results-to-print {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-  .no-print {
-    display: none !important;
+@layer utilities {
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #results-to-print, #results-to-print * {
+      visibility: visible;
+    }
+    #results-to-print {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .no-print {
+      display: none !important;
+    }
   }
 }

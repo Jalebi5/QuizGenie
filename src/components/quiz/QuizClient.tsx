@@ -177,13 +177,15 @@ export default function QuizClient() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg font-medium">Question {currentQuestionIndex + 1} of {quizData.quiz.length}</CardTitle>
-            <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-5 w-5" />
-                <span>{timeLeft}s</span>
-            </div>
+            {quizData.quizMode === "perQuestion" && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Clock className="h-5 w-5" />
+                    <span>{timeLeft}s</span>
+                </div>
+            )}
         </CardHeader>
         <CardContent className="p-6">
-          <h2 className="text-2xl font-bold font-headline mb-6">
+          <h2 className="text-2xl font-bold font-headline mb-6 break-words">
             {currentQuestion.question}
           </h2>
 
@@ -191,7 +193,6 @@ export default function QuizClient() {
             value={userAnswer?.toString()}
             onValueChange={handleAnswerChange}
             className="space-y-4"
-            disabled={isAnswered}
           >
             {currentQuestion.options.map((option, index) => {
               const isCorrectAnswer = index === currentQuestion.correctAnswerIndex;
@@ -212,7 +213,7 @@ export default function QuizClient() {
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
                 <span className="font-bold mr-4">{String.fromCharCode(65 + index)}</span>
-                <span>{option}</span>
+                <span className="break-words flex-1">{option}</span>
               </Label>
             )})}
           </RadioGroup>
@@ -251,7 +252,7 @@ export default function QuizClient() {
         {currentQuestionIndex === quizData.quiz.length - 1 ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button>
+              <Button disabled={userAnswer === null}>
                 <CheckCircle />
                 Submit
               </Button>
@@ -270,7 +271,7 @@ export default function QuizClient() {
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          <Button onClick={handleNext}>
+          <Button onClick={handleNext} disabled={userAnswer === null}>
             Next
             <ArrowRight />
           </Button>

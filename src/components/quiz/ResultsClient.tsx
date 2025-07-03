@@ -129,7 +129,7 @@ export default function ResultsClient() {
                 <div className="flex gap-2 no-print">
                     <Button variant={filter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('all')}>All ({quizResult.quiz.length})</Button>
                     <Button variant={filter === 'correct' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('correct')} className="bg-green-600 hover:bg-green-700">Correct ({quizResult.score})</Button>
-                    <Button variant={filter === 'incorrect' ? 'destructive' : 'outline-destructive'} size="sm" onClick={() => setFilter('incorrect')}>Incorrect ({incorrectCount})</Button>
+                    <Button variant={filter === 'incorrect' ? 'destructive' : 'outline'} size="sm" onClick={() => setFilter('incorrect')}>Incorrect ({incorrectCount})</Button>
                 </div>
              </div>
              <Accordion type="single" collapsible className="w-full">
@@ -145,7 +145,7 @@ export default function ResultsClient() {
                     <AccordionTrigger>
                       <div className="flex items-center gap-2 w-full">
                         {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0" /> : <X className="h-5 w-5 text-destructive flex-shrink-0" />}
-                        <span className="text-left flex-1">{qIndex + 1}. {question.question}</span>
+                        <span className="text-left flex-1 break-words">{qIndex + 1}. {question.question}</span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
@@ -157,7 +157,7 @@ export default function ResultsClient() {
                             <li
                               key={oIndex}
                               className={cn(
-                                "p-3 rounded-md border",
+                                "p-3 rounded-md border break-words",
                                 isCorrectAnswer ? "bg-green-100 dark:bg-green-900 border-green-500" : "",
                                 isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900 border-red-500" : ""
                               )}
