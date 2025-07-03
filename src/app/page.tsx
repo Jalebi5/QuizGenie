@@ -27,8 +27,8 @@ export default function Home() {
       <div className="max-w-4xl w-full">
         <section className="py-12 md:py-20">
           <div className="container mx-auto px-4">
-            <h1 className="text-4xl md:text-6xl font-bold font-headline mb-4 bg-gradient-to-r from-primary via-blue-500 to-accent inline-block text-transparent bg-clip-text">
-              The Ultimate BookQuiz Genie
+            <h1 className="text-4xl md:text-6xl font-bold font-headline mb-4 bg-gradient-to-r from-primary via-cyan-500 to-accent-foreground/50 inline-block text-transparent bg-clip-text">
+              The Ultimate Quiz Genius
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
               Transform any document into a dynamic learning experience. Upload, generate, and conquer your exams with AI-powered quizzes tailored just for you.

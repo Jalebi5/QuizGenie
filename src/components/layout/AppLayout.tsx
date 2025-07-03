@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Upload, History, BrainCircuit } from 'lucide-react';
+import { Home, History, BrainCircuit, PlusCircle } from 'lucide-react';
 import {
   SidebarProvider,
   Sidebar,
@@ -18,7 +18,7 @@ import Header from '@/components/layout/Header';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/upload', label: 'New Quiz', icon: Upload },
+  { href: '/upload', label: 'New Quiz', icon: PlusCircle },
   { href: '/history', label: 'History', icon: History },
 ];
 

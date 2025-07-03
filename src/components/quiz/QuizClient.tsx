@@ -44,6 +44,8 @@ export default function QuizClient() {
     } else {
         if (answers.length !== quizData.quiz.length) {
             setAnswers(Array(quizData.quiz.length).fill(null));
+        }
+        if (quizData.quizMode === 'perQuestion') {
             setTimeLeft(quizData.timer);
         }
     }
@@ -207,18 +209,21 @@ export default function QuizClient() {
               const isSelected = index === userAnswer;
 
               return (
-              <div key={index} className={cn(
-                  "border rounded-lg transition-colors",
+              <div
+                key={index}
+                className={cn(
+                  "border rounded-lg transition-all",
                   !isAnswered && "hover:bg-secondary",
                   isSelected && !isAnswered && "border-primary bg-primary/10",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900/50 text-red-900 dark:text-red-100",
                   isAnswered && "cursor-not-allowed"
-                )}>
+                )}
+              >
                   <Label
                     htmlFor={`option-${index}`}
                     className={cn(
-                      "flex items-start p-4",
+                      "flex items-start p-4 w-full",
                       !isAnswered && "cursor-pointer"
                     )}
                   >
