@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview Extracts text from an image.
+ * @fileOverview Extracts text from one or more images.
  *
- * - extractTextFromImage - A function that takes an image data URI and returns the text.
+ * - extractTextFromImage - A function that takes image data URIs and returns the combined text.
  * - ExtractTextFromImageInput - The input type for the extractTextFromImage function.
  * - ExtractTextFromImageOutput - The return type for the extractTextFromImage function.
  */
@@ -11,16 +11,16 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const ExtractTextFromImageInputSchema = z.object({
-  photoDataUri: z
-    .string()
+  photoDataUris: z
+    .array(z.string())
     .describe(
-      "A photo of a document, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "An array of photos of documents, as data URIs. Each must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
 });
 export type ExtractTextFromImageInput = z.infer<typeof ExtractTextFromImageInputSchema>;
 
 const ExtractTextFromImageOutputSchema = z.object({
-    text: z.string().describe('The extracted text from the image.'),
+    text: z.string().describe('The combined extracted text from all images.'),
 });
 export type ExtractTextFromImageOutput = z.infer<typeof ExtractTextFromImageOutputSchema>;
 
@@ -32,9 +32,12 @@ const extractTextPrompt = ai.definePrompt({
     name: 'extractTextPrompt',
     input: {schema: ExtractTextFromImageInputSchema},
     output: {schema: ExtractTextFromImageOutputSchema},
-    prompt: `You are an expert at Optical Character Recognition (OCR). Extract all text from the following image.
+    prompt: `You are an expert at Optical Character Recognition (OCR). Extract all text from the following images. Concatenate the text from all images into a single block of text, in the order the images are provided.
 
-Photo: {{media url=photoDataUri}}`,
+{{#each photoDataUris}}
+Photo: {{media url=this}}
+{{/each}}
+`,
 });
 
 

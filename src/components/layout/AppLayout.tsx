@@ -22,8 +22,12 @@ const navItems = [
   { href: '/history', label: 'History', icon: History },
 ];
 
+const quizCreationPaths = ['/upload', '/review', '/configure'];
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+
+  const isQuizCreationPath = (path: string) => quizCreationPaths.includes(path);
 
   return (
     <SidebarProvider>
@@ -40,7 +44,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href || (item.href.startsWith('/upload') && pathname.startsWith('/upload'))}
+                  isActive={
+                    pathname === item.href ||
+                    (item.href === '/upload' && isQuizCreationPath(pathname))
+                  }
                   tooltip={{ children: item.label, side: 'right' }}
                 >
                   <Link href={item.href}>
