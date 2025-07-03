@@ -209,7 +209,7 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "grid grid-cols-[auto_1fr] items-center gap-4 p-4 border rounded-lg transition-colors",
+                  "grid grid-cols-[auto_1fr] items-start gap-4 p-4 border rounded-lg transition-colors",
                   // Base states for before an answer is selected
                   !isAnswered && "cursor-pointer hover:bg-secondary",
                   
@@ -225,8 +225,8 @@ export default function QuizClient() {
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
-                <span className="font-bold">{String.fromCharCode(65 + index)}</span>
-                <span className="break-words">{option}</span>
+                <span className="font-bold mt-0.5">{String.fromCharCode(65 + index)}</span>
+                <span className="break-words min-w-0">{option}</span>
               </Label>
             )})}
           </RadioGroup>
