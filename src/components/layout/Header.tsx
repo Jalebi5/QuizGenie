@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrainCircuit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const Header = () => {
   return (
@@ -17,6 +18,7 @@ const Header = () => {
           <Button variant="ghost" asChild>
             <Link href="/history">History</Link>
           </Button>
+          <ThemeSwitcher />
         </nav>
       </div>
     </header>

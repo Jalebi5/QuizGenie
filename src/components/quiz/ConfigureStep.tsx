@@ -157,7 +157,7 @@ export default function ConfigureStep() {
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Accordion type="multiple" defaultValue={["basic"]} className="w-full">
+                <Accordion type="multiple" defaultValue={["basic", "advanced"]} className="w-full">
                     <AccordionItem value="basic">
                         <AccordionTrigger>
                             <h3 className="text-lg font-semibold font-headline flex items-center gap-2"><Wand2/> Basic Settings</h3>

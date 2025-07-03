@@ -13,10 +13,13 @@ import WorkHard from "./WorkHard";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
+type FilterType = 'all' | 'correct' | 'incorrect';
+
 export default function ResultsClient() {
   const router = useRouter();
   const { toast } = useToast();
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [filter, setFilter] = useState<FilterType>('all');
 
   useEffect(() => {
     const data = sessionStorage.getItem("quizResult");
@@ -69,13 +72,15 @@ export default function ResultsClient() {
     return { __html: boldedText };
   };
 
+  const incorrectCount = result.quiz.length - result.score;
+
   return (
     <div className="max-w-4xl mx-auto" id="results-to-print">
       {isSuccess && <Confetti />}
       <Card className="overflow-hidden">
         <CardHeader className="text-center p-6 bg-secondary/50">
           <div className="flex justify-end gap-2 absolute top-4 right-4 no-print">
-            <Button variant="outline" size="sm" onClick={handleRetakeIncorrect} disabled={!result.config}>
+            <Button variant="outline" size="sm" onClick={handleRetakeIncorrect} disabled={!result.config || incorrectCount === 0}>
                 <Redo /> Retake Incorrect
             </Button>
             <Button variant="outline" size="sm" onClick={handlePrint}>
@@ -120,11 +125,22 @@ export default function ResultsClient() {
           </div>
 
           <div>
-             <h3 className="text-xl font-bold font-headline mb-4">Review Your Answers</h3>
+             <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold font-headline">Review Your Answers</h3>
+                <div className="flex gap-2 no-print">
+                    <Button variant={filter === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('all')}>All ({result.quiz.length})</Button>
+                    <Button variant={filter === 'correct' ? 'default' : 'outline'} size="sm" onClick={() => setFilter('correct')} className="bg-green-600 hover:bg-green-700">Correct ({result.score})</Button>
+                    <Button variant={filter === 'incorrect' ? 'destructive' : 'outline-destructive'} size="sm" onClick={() => setFilter('incorrect')}>Incorrect ({incorrectCount})</Button>
+                </div>
+             </div>
              <Accordion type="single" collapsible className="w-full">
               {result.quiz.map((question, qIndex) => {
                 const userAnswerIndex = result.answers[qIndex];
                 const isCorrect = userAnswerIndex === question.correctAnswerIndex;
+
+                if (filter === 'correct' && !isCorrect) return null;
+                if (filter === 'incorrect' && isCorrect) return null;
+
                 return (
                   <AccordionItem value={`item-${qIndex}`} key={qIndex}>
                     <AccordionTrigger>

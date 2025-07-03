@@ -71,7 +71,6 @@ export default function HistoryClient() {
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Topic</TableHead>
-              <TableHead className="text-center">Score</TableHead>
               <TableHead className="text-center">Accuracy</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -81,7 +80,6 @@ export default function HistoryClient() {
               <TableRow key={index}>
                 <TableCell>{format(new Date(item.time), "PPp")}</TableCell>
                 <TableCell className="max-w-[250px] truncate">{item.topic}</TableCell>
-                <TableCell className="text-center font-medium">{item.score} / {item.quiz.length}</TableCell>
                 <TableCell className="text-center">
                   <Badge variant={item.accuracy > 60 ? "default" : "destructive"} className={item.accuracy > 60 ? "bg-green-600" : ""}>
                     {item.accuracy.toFixed(0)}%
