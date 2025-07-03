@@ -26,4 +26,5 @@ export interface QuizResult {
   accuracy: number;
   time: string; // ISO date string
   topic: string;
+  config: QuizConfig;
 }

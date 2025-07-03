@@ -3,27 +3,59 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { QuizResult } from "@/types/quiz";
+import { QuizResult, StoredQuizData } from "@/types/quiz";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Check, X, HelpCircle } from "lucide-react";
+import { Check, X, HelpCircle, Download, Redo } from "lucide-react";
 import Confetti from "./Confetti";
 import WorkHard from "./WorkHard";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ResultsClient() {
   const router = useRouter();
+  const { toast } = useToast();
   const [result, setResult] = useState<QuizResult | null>(null);
 
   useEffect(() => {
     const data = sessionStorage.getItem("quizResult");
     if (data) {
       setResult(JSON.parse(data));
+      // Clear it so reloading the page doesn't show old results
+      // sessionStorage.removeItem("quizResult");
     } else {
       router.push("/");
     }
   }, [router]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+  
+  const handleRetakeIncorrect = () => {
+    if (!result || !result.config) return;
+
+    const incorrectQuestions = result.quiz.filter((_, qIndex) => 
+        result.answers[qIndex] !== result.quiz[qIndex].correctAnswerIndex
+    );
+    
+    if (incorrectQuestions.length === 0) {
+        toast({ title: "Nothing to retake!", description: "You answered all questions correctly." });
+        return;
+    }
+
+    const newQuizConfig = { ...result.config, numberOfQuestions: incorrectQuestions.length };
+
+    const storedData: StoredQuizData = {
+        quiz: incorrectQuestions,
+        documentText: `Review of incorrect answers for "${result.topic}"`,
+        ...newQuizConfig
+    };
+
+    sessionStorage.setItem("quizData", JSON.stringify(storedData));
+    router.push("/quiz");
+  };
 
   if (!result) {
     return <div className="flex items-center justify-center h-[50vh]">Loading results...</div>;
@@ -32,15 +64,24 @@ export default function ResultsClient() {
   const isSuccess = result.accuracy > 60;
   
   const createMarkup = (text: string) => {
+    if (!text) return { __html: "" };
     const boldedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     return { __html: boldedText };
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto" id="results-to-print">
       {isSuccess && <Confetti />}
       <Card className="overflow-hidden">
         <CardHeader className="text-center p-6 bg-secondary/50">
+          <div className="flex justify-end gap-2 absolute top-4 right-4 no-print">
+            <Button variant="outline" size="sm" onClick={handleRetakeIncorrect} disabled={!result.config}>
+                <Redo /> Retake Incorrect
+            </Button>
+            <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Download /> Download PDF
+            </Button>
+          </div>
           {isSuccess ? (
             <div>
               <h2 className="text-3xl font-bold font-headline text-green-600">Congratulations!</h2>
@@ -132,7 +173,7 @@ export default function ResultsClient() {
             </Accordion>
           </div>
 
-          <div className="text-center">
+          <div className="text-center no-print">
             <Button asChild>
               <Link href="/">Take Another Quiz</Link>
             </Button>

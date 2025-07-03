@@ -126,13 +126,23 @@ export default function QuizClient() {
       accuracy,
       time: new Date().toISOString(),
       topic,
+      config: {
+        numberOfQuestions: quizData.numberOfQuestions,
+        optionsPerQuestion: quizData.optionsPerQuestion,
+        timer: quizData.timer,
+        quizMode: quizData.quizMode,
+        difficulty: quizData.difficulty,
+        questionType: quizData.questionType,
+        keywords: quizData.keywords,
+        explanationTiming: quizData.explanationTiming,
+      }
     };
 
     sessionStorage.setItem("quizResult", JSON.stringify(result));
 
     const history = JSON.parse(localStorage.getItem("quizHistory") || "[]");
     history.unshift(result);
-    localStorage.setItem("quizHistory", JSON.stringify(history.slice(0, 10)));
+    localStorage.setItem("quizHistory", JSON.stringify(history.slice(0, 20)));
 
     router.push("/results");
   };
@@ -146,6 +156,7 @@ export default function QuizClient() {
   if (!quizData) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
+        <Loader2 className="mr-2 h-8 w-8 animate-spin" />
         Loading quiz...
       </div>
     );
@@ -153,6 +164,7 @@ export default function QuizClient() {
 
   const currentQuestion: Question = quizData.quiz[currentQuestionIndex];
   const progressPercentage = ((currentQuestionIndex + 1) / quizData.quiz.length) * 100;
+  const userAnswer = answers[currentQuestionIndex];
 
   return (
     <div className="max-w-2xl mx-auto" ref={quizCardRef}>
@@ -171,13 +183,14 @@ export default function QuizClient() {
           </h2>
 
           <RadioGroup
-            value={answers[currentQuestionIndex]?.toString()}
+            value={userAnswer?.toString()}
             onValueChange={handleAnswerChange}
             className="space-y-4"
             disabled={isAnswered}
           >
             {currentQuestion.options.map((option, index) => {
               const isCorrectAnswer = index === currentQuestion.correctAnswerIndex;
+              const isSelected = index === userAnswer;
 
               return (
               <Label
@@ -186,8 +199,9 @@ export default function QuizClient() {
                 className={cn(
                   "flex items-center p-4 border rounded-lg cursor-pointer transition-colors",
                   "hover:bg-secondary",
-                  isAnswered && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
-                  isAnswered && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100"
+                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100",
+                  isAnswered && quizData.explanationTiming === 'end' && isSelected && "border-primary bg-primary/10",
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
