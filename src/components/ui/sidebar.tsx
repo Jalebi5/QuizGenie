@@ -176,6 +176,11 @@ const Sidebar = React.forwardRef<
     ref
   ) => {
     const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const [mounted, setMounted] = React.useState(false)
+
+    React.useEffect(() => {
+      setMounted(true)
+    }, [])
 
     if (collapsible === "none") {
       return (
@@ -190,6 +195,12 @@ const Sidebar = React.forwardRef<
           {children}
         </div>
       )
+    }
+
+    // On the server and initial client render, don't render the sidebar
+    // This prevents the peer/peer-data classes from causing a hydration mismatch
+    if (!mounted) {
+      return null
     }
 
     if (isMobile) {
@@ -439,7 +450,7 @@ const SidebarGroupLabel = React.forwardRef<
       ref={ref}
       data-sidebar="group-label"
       className={cn(
-        "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring transition-[margin,opa] ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "duration-200 flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 outline-none ring-sidebar-ring focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
         className
       )}
