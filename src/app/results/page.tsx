@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 export default function ResultsPage() {
   return (
-    <div className="container mx-auto p-4 md:p-8">
+    <div className="w-full">
       <Suspense fallback={<div>Loading Results...</div>}>
         <ResultsClient />
       </Suspense>

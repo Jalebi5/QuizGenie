@@ -1,25 +1,14 @@
-import Link from "next/link";
-import { BrainCircuit } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const Header = () => {
   return (
-    <header className="border-b">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <BrainCircuit className="h-6 w-6 text-primary" />
-          <span className="text-lg font-bold font-headline">QuizGenius</span>
-        </Link>
-        <nav className="flex items-center gap-2">
-          <Button variant="ghost" asChild>
-            <Link href="/">Home</Link>
-          </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/history">History</Link>
-          </Button>
-          <ThemeSwitcher />
-        </nav>
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6 md:px-8">
+      <div>
+        <SidebarTrigger />
+      </div>
+      <div className="flex items-center gap-2">
+        <ThemeSwitcher />
       </div>
     </header>
   );
