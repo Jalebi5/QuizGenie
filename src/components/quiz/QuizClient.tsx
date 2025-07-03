@@ -56,7 +56,9 @@ export default function QuizClient() {
     if (quizData && currentQuestionIndex < quizData.quiz.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
       setSimplifiedExplanation(null);
-      resetTimer();
+      if (quizData.quizMode === 'perQuestion') {
+        resetTimer();
+      }
       quizCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [quizData, currentQuestionIndex, resetTimer]);
@@ -65,10 +67,12 @@ export default function QuizClient() {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1);
       setSimplifiedExplanation(null);
-      resetTimer();
+      if (quizData && quizData.quizMode === 'perQuestion') {
+        resetTimer();
+      }
       quizCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [currentQuestionIndex, resetTimer]);
+  }, [currentQuestionIndex, resetTimer, quizData]);
 
   // Timer logic
   useEffect(() => {
@@ -186,7 +190,7 @@ export default function QuizClient() {
             )}
         </CardHeader>
         <CardContent className="p-6">
-          <h2 className="text-2xl font-bold font-headline mb-6">
+          <h2 className="text-2xl font-bold font-headline mb-6 break-words">
             {currentQuestion.question}
           </h2>
 
@@ -194,6 +198,7 @@ export default function QuizClient() {
             value={userAnswer?.toString()}
             onValueChange={handleAnswerChange}
             className="space-y-4"
+            disabled={isAnswered}
           >
             {currentQuestion.options.map((option, index) => {
               const isCorrectAnswer = index === currentQuestion.correctAnswerIndex;
@@ -204,21 +209,24 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "flex items-center p-4 border rounded-lg transition-colors break-all",
+                  "flex items-center p-4 border rounded-lg transition-colors",
                   !isAnswered && "cursor-pointer hover:bg-secondary",
                   isAnswered && "cursor-not-allowed",
-
-                  // General style for any selected item. This provides immediate feedback.
-                  isSelected && "border-primary bg-primary/10",
                   
-                  // These styles will apply once answered and override the one above if timing is immediate.
+                  // Style for the selected but not-yet-answered state
+                  isSelected && !isAnswered && "border-primary bg-primary/10",
+
+                  // These styles apply after an answer is locked in.
                   isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "!border-green-500 !bg-green-100 dark:!bg-green-900 !text-green-900 dark:!text-green-100",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "!border-red-500 !bg-red-100 dark:!bg-red-900 !text-red-900 dark:!text-red-100"
+                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "!border-red-500 !bg-red-100 dark:!bg-red-900 !text-red-900 dark:!text-red-100",
+
+                  // Style for "explanation at end" mode
+                  isAnswered && isSelected && quizData.explanationTiming === 'end' && "border-primary bg-primary/10"
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
                 <span className="font-bold mr-4">{String.fromCharCode(65 + index)}</span>
-                <span className="flex-1 min-w-0">{option}</span>
+                <span className="flex-1 min-w-0 break-words">{option}</span>
               </Label>
             )})}
           </RadioGroup>
@@ -236,13 +244,13 @@ export default function QuizClient() {
                   </Button>
               </div>
               <div
-                  className="text-sm text-foreground/80"
+                  className="text-sm text-foreground/80 break-words"
                   dangerouslySetInnerHTML={createMarkup(currentQuestion.explanation)}
               />
               {isSimplifying && <Skeleton className="h-12 w-full mt-2" />}
               {simplifiedExplanation && (
                    <div className="mt-4 p-3 rounded-md border border-amber-500/50 bg-amber-500/10">
-                      <p className="text-sm text-foreground/90" dangerouslySetInnerHTML={createMarkup(simplifiedExplanation)} />
+                      <p className="text-sm text-foreground/90 break-words" dangerouslySetInnerHTML={createMarkup(simplifiedExplanation)} />
                   </div>
               )}
             </div>
