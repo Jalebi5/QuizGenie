@@ -50,6 +50,7 @@ const formSchema = z.object({
   difficulty: z.enum(["easy", "medium", "hard"]),
   questionType: z.enum(["any", "facts", "concepts", "cause_effect"]),
   keywords: z.string().optional(),
+  explanationTiming: z.enum(["immediate", "end"]),
 }).refine(data => {
     if (data.quizMode === 'timedChallenge' && !data.timerTotal) {
         return false;
@@ -87,6 +88,7 @@ export default function ConfigureStep() {
       difficulty: "medium",
       questionType: "any",
       keywords: "",
+      explanationTiming: "immediate",
     },
   });
   
@@ -131,6 +133,7 @@ export default function ConfigureStep() {
         ...quizConfig,
         quizMode: values.quizMode,
         timer: timerValue,
+        explanationTiming: values.explanationTiming,
       };
       sessionStorage.setItem("quizData", JSON.stringify(storedData));
       router.push("/quiz");
@@ -272,6 +275,40 @@ export default function ConfigureStep() {
                             <h3 className="text-lg font-semibold font-headline flex items-center gap-2"><Sparkles/> Advanced Settings</h3>
                         </AccordionTrigger>
                         <AccordionContent className="pt-4 space-y-6">
+                            <FormField
+                                control={form.control}
+                                name="explanationTiming"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-3">
+                                    <FormLabel>Explanation Delivery</FormLabel>
+                                    <FormControl>
+                                        <RadioGroup
+                                        onValueChange={field.onChange}
+                                        defaultValue={field.value}
+                                        className="flex flex-col space-y-1"
+                                        >
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="immediate" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                              Show after each question
+                                            </FormLabel>
+                                        </FormItem>
+                                        <FormItem className="flex items-center space-x-3 space-y-0">
+                                            <FormControl>
+                                            <RadioGroupItem value="end" />
+                                            </FormControl>
+                                            <FormLabel className="font-normal">
+                                              Show only on results page
+                                            </FormLabel>
+                                        </FormItem>
+                                        </RadioGroup>
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                             <FormField
                                 control={form.control}
                                 name="difficulty"

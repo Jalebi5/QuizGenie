@@ -11,6 +11,7 @@ export interface QuizConfig {
   difficulty: "easy" | "medium" | "hard";
   questionType: "any" | "facts" | "concepts" | "cause_effect";
   keywords?: string;
+  explanationTiming: "immediate" | "end";
 }
 
 export interface StoredQuizData extends QuizConfig {

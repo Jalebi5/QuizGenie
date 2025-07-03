@@ -200,7 +200,7 @@ export default function QuizClient() {
             )})}
           </RadioGroup>
 
-          {isAnswered && currentQuestion.explanation && (
+          {isAnswered && currentQuestion.explanation && quizData.explanationTiming === 'immediate' && (
             <div className="mt-6 rounded-lg border border-primary/20 bg-primary/10 p-4 space-y-2">
               <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
