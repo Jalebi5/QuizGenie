@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -145,7 +146,7 @@ export default function ResultsClient() {
                     <AccordionTrigger>
                       <div className="flex items-center gap-2 w-full">
                         {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0" /> : <X className="h-5 w-5 text-destructive flex-shrink-0" />}
-                        <span className="text-left flex-1 break-all min-w-0">{qIndex + 1}. {question.question}</span>
+                        <span className="text-left flex-1 break-words min-w-0">{qIndex + 1}. {question.question}</span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
@@ -157,12 +158,12 @@ export default function ResultsClient() {
                             <li
                               key={oIndex}
                               className={cn(
-                                "p-3 rounded-md border break-all",
+                                "p-3 rounded-md border",
                                 isCorrectAnswer ? "bg-green-100 dark:bg-green-900 border-green-500" : "",
                                 isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900 border-red-500" : ""
                               )}
                             >
-                              {option}
+                              <span className="break-words">{option}</span>
                               {isUserAnswer && !isCorrectAnswer && <span className="ml-2 text-sm font-semibold text-destructive">(Your Answer)</span>}
                               {isCorrectAnswer && <span className="ml-2 text-sm font-semibold text-green-600">(Correct Answer)</span>}
                             </li>
@@ -176,7 +177,7 @@ export default function ResultsClient() {
                             <h4 className="font-bold font-headline text-primary">Explanation</h4>
                           </div>
                           <div
-                            className="text-sm text-foreground/80"
+                            className="text-sm text-foreground/80 break-words"
                             dangerouslySetInnerHTML={createMarkup(question.explanation)}
                           />
                         </div>
