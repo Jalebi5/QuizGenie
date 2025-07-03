@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -185,7 +186,7 @@ export default function QuizClient() {
             )}
         </CardHeader>
         <CardContent className="p-6">
-          <h2 className="text-2xl font-bold font-headline mb-6 break-all">
+          <h2 className="text-2xl font-bold font-headline mb-6">
             {currentQuestion.question}
           </h2>
 
@@ -203,17 +204,21 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "flex items-center p-4 border rounded-lg transition-colors",
+                  "flex items-center p-4 border rounded-lg transition-colors break-all",
                   !isAnswered && "cursor-pointer hover:bg-secondary",
                   isAnswered && "cursor-not-allowed",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100",
-                  isAnswered && quizData.explanationTiming === 'end' && isSelected && "border-primary bg-primary/10",
+
+                  // General style for any selected item. This provides immediate feedback.
+                  isSelected && "border-primary bg-primary/10",
+                  
+                  // These styles will apply once answered and override the one above if timing is immediate.
+                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "!border-green-500 !bg-green-100 dark:!bg-green-900 !text-green-900 dark:!text-green-100",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "!border-red-500 !bg-red-100 dark:!bg-red-900 !text-red-900 dark:!text-red-100"
                 )}
               >
                 <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
                 <span className="font-bold mr-4">{String.fromCharCode(65 + index)}</span>
-                <span className="break-all flex-1 min-w-0">{option}</span>
+                <span className="flex-1 min-w-0">{option}</span>
               </Label>
             )})}
           </RadioGroup>
