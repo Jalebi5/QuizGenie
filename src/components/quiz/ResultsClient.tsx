@@ -164,7 +164,7 @@ export default function ResultsClient() {
                               )}
                             >
                               <div className="flex-1 min-w-0 pr-4">
-                                <span className="break-words">{option}</span>
+                                <p className="break-words">{option}</p>
                               </div>
                               <div className="flex-shrink-0">
                                 {isUserAnswer && !isCorrectAnswer && <span className="text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}

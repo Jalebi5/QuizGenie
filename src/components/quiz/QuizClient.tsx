@@ -213,7 +213,7 @@ export default function QuizClient() {
                 key={index}
                 htmlFor={`option-${index}`}
                 className={cn(
-                  "flex items-center p-4 border rounded-lg transition-colors",
+                  "flex items-start p-4 border rounded-lg transition-colors",
                   !isAnswered && "cursor-pointer hover:bg-secondary",
                   isSelected && !isAnswered && "border-primary bg-primary/10",
                   isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "!border-green-500 !bg-green-100 dark:!bg-green-900 !text-green-900 dark:!text-green-100",
@@ -221,10 +221,12 @@ export default function QuizClient() {
                   isAnswered && "cursor-not-allowed"
                 )}
               >
-                <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                <RadioGroupItem value={index.toString()} id={`option-${index}`} className="mt-1 flex-shrink-0" />
                 <div className="ml-4 flex-1 min-w-0">
-                  <span className="font-bold">{String.fromCharCode(65 + index)}. </span>
-                  <span className="break-words">{option}</span>
+                  <p className="break-words">
+                    <span className="font-bold">{String.fromCharCode(65 + index)}. </span>
+                    {option}
+                  </p>
                 </div>
               </Label>
             )})}
