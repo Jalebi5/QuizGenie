@@ -158,16 +158,18 @@ export default function ResultsClient() {
                             <li
                               key={oIndex}
                               className={cn(
-                                "flex p-3 rounded-md border items-start",
+                                "flex p-3 rounded-md border items-center justify-between",
                                 isCorrectAnswer ? "bg-green-100 dark:bg-green-900 border-green-500" : "",
                                 isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900 border-red-500" : ""
                               )}
                             >
-                              <div className="flex-1 min-w-0">
+                              <div className="flex-1 min-w-0 pr-4">
                                 <span className="break-words">{option}</span>
                               </div>
-                              {isUserAnswer && !isCorrectAnswer && <span className="ml-auto pl-2 text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
-                              {isCorrectAnswer && <span className="ml-auto pl-2 text-sm font-semibold text-green-600 whitespace-nowrap">(Correct Answer)</span>}
+                              <div className="flex-shrink-0">
+                                {isUserAnswer && !isCorrectAnswer && <span className="text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
+                                {isCorrectAnswer && <span className="text-sm font-semibold text-green-600 whitespace-nowrap">(Correct Answer)</span>}
+                              </div>
                             </li>
                           );
                         })}
