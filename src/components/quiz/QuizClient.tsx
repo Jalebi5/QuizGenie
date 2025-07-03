@@ -5,8 +5,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle, Clock, HelpCircle, Lightbulb, Loader2 } from "lucide-react";
 import {
-  Quiz,
-  StoredQuizData,
   Question,
   QuizResult,
 } from "@/types/quiz";
@@ -209,26 +207,28 @@ export default function QuizClient() {
               const isSelected = index === userAnswer;
 
               return (
-              <Label
-                key={index}
-                htmlFor={`option-${index}`}
-                className={cn(
-                  "flex items-start p-4 border rounded-lg transition-colors",
-                  !isAnswered && "cursor-pointer hover:bg-secondary",
+              <div key={index} className={cn(
+                  "border rounded-lg transition-colors",
+                  !isAnswered && "hover:bg-secondary",
                   isSelected && !isAnswered && "border-primary bg-primary/10",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "!border-green-500 !bg-green-100 dark:!bg-green-900 !text-green-900 dark:!text-green-100",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "!border-red-500 !bg-red-100 dark:!bg-red-900 !text-red-900 dark:!text-red-100",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-100",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100",
                   isAnswered && "cursor-not-allowed"
-                )}
-              >
-                <RadioGroupItem value={index.toString()} id={`option-${index}`} className="mt-1 flex-shrink-0" />
-                <div className="ml-4 flex-1 min-w-0">
-                  <p className="break-words">
-                    <span className="font-bold">{String.fromCharCode(65 + index)}. </span>
-                    {option}
-                  </p>
-                </div>
-              </Label>
+                )}>
+                  <Label
+                    htmlFor={`option-${index}`}
+                    className={cn(
+                      "flex items-start p-4",
+                      !isAnswered && "cursor-pointer"
+                    )}
+                  >
+                    <RadioGroupItem value={index.toString()} id={`option-${index}`} className="mt-1 flex-shrink-0" />
+                    <div className="ml-4 flex-1 min-w-0">
+                      <span className="font-bold">{String.fromCharCode(65 + index)}. </span>
+                      <span className="break-words">{option}</span>
+                    </div>
+                  </Label>
+              </div>
             )})}
           </RadioGroup>
 
