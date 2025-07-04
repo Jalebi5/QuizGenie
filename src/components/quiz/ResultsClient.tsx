@@ -91,7 +91,7 @@ export default function ResultsClient() {
 
   const incorrectCount = quizResult.quiz.length - quizResult.score;
 
-  const ReviewContent = ({ question, qIndex }: { question: Question, qIndex: number}) => {
+  const ReviewContent = ({ question, qIndex, showUserAnswer = true }: { question: Question; qIndex: number; showUserAnswer?: boolean }) => {
     const userAnswerIndex = quizResult.answers[qIndex];
     return (
       <>
@@ -105,14 +105,14 @@ export default function ResultsClient() {
                 className={cn(
                   "flex p-3 rounded-md border items-start",
                   isCorrectAnswer ? "bg-green-100 dark:bg-green-900/50 border-green-500" : "",
-                  isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900/50 border-red-500" : ""
+                  showUserAnswer && isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900/50 border-red-500" : ""
                 )}
               >
                 <div className="flex-1 min-w-0 pr-4">
                   <span className="break-words">{String.fromCharCode(65 + oIndex)}. {option}</span>
                 </div>
                 <div className="flex-shrink-0">
-                  {isUserAnswer && !isCorrectAnswer && <span className="text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
+                  {showUserAnswer && isUserAnswer && !isCorrectAnswer && <span className="text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
                   {isCorrectAnswer && <span className="text-sm font-semibold text-green-600 whitespace-nowrap">(Correct Answer)</span>}
                 </div>
               </li>
@@ -206,7 +206,7 @@ export default function ResultsClient() {
                         <p className="flex-1 min-w-0 break-words">{qIndex + 1}. {question.question}</p>
                       </div>
                       <div className="pl-7">
-                        <ReviewContent question={question} qIndex={qIndex} />
+                        <ReviewContent question={question} qIndex={qIndex} showUserAnswer={false} />
                       </div>
                     </div>
                   );
