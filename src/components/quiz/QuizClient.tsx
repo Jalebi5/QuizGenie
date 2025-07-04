@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, HelpCircle, Lightbulb, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, HelpCircle, Lightbulb, Loader2, XCircle } from "lucide-react";
 import {
   Question,
   QuizResult,
@@ -199,6 +199,7 @@ export default function QuizClient() {
           </h2>
 
           <RadioGroup
+            key={currentQuestionIndex}
             value={userAnswer?.toString()}
             onValueChange={handleAnswerChange}
             className="space-y-4"
@@ -209,31 +210,45 @@ export default function QuizClient() {
               const isSelected = index === userAnswer;
 
               return (
-              <div
+              <Label
                 key={index}
+                htmlFor={`option-${index}`}
                 className={cn(
-                  "border rounded-lg transition-all",
-                  !isAnswered && "hover:bg-secondary",
-                  isSelected && !isAnswered && "border-primary bg-primary/10",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-500 bg-green-100 dark:bg-green-900/50 text-green-900 dark:text-green-100",
-                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-500 bg-red-100 dark:bg-red-900/50 text-red-900 dark:text-red-100",
-                  isAnswered && "cursor-not-allowed"
+                  "flex items-center gap-4 p-4 rounded-lg border-2 transition-all",
+                  !isAnswered && "cursor-pointer bg-card hover:border-primary border-muted",
+                  !isAnswered && isSelected && "border-primary bg-primary/10",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "border-green-600 bg-green-500/10",
+                  isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "border-red-600 bg-red-500/10",
+                  isAnswered && quizData.explanationTiming === 'end' && isSelected && "border-primary bg-primary/10",
+                  isAnswered && "cursor-not-allowed",
+                  isAnswered && !isSelected && "opacity-60"
                 )}
               >
-                  <Label
-                    htmlFor={`option-${index}`}
-                    className={cn(
-                      "flex items-start p-4 w-full",
-                      !isAnswered && "cursor-pointer"
-                    )}
-                  >
-                    <RadioGroupItem value={index.toString()} id={`option-${index}`} className="mt-1 flex-shrink-0" />
-                    <div className="ml-4 flex-1 min-w-0">
-                      <span className="font-bold">{String.fromCharCode(65 + index)}. </span>
-                      <span className="break-words">{option}</span>
-                    </div>
-                  </Label>
-              </div>
+                <RadioGroupItem value={index.toString()} id={`option-${index}`} className="sr-only" />
+                
+                <div className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full font-bold flex-shrink-0",
+                    "bg-secondary text-secondary-foreground",
+                    !isAnswered && isSelected && "bg-primary text-primary-foreground",
+                    isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && "bg-green-600 text-white",
+                    isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && "bg-red-600 text-white"
+                )}>
+                    {String.fromCharCode(65 + index)}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <span className="break-words">{option}</span>
+                </div>
+
+                <div className="ml-auto h-6 w-6 flex-shrink-0">
+                  {isAnswered && quizData.explanationTiming === 'immediate' && isCorrectAnswer && (
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  )}
+                  {isAnswered && quizData.explanationTiming === 'immediate' && isSelected && !isCorrectAnswer && (
+                    <XCircle className="h-6 w-6 text-red-600" />
+                  )}
+                </div>
+              </Label>
             )})}
           </RadioGroup>
 
