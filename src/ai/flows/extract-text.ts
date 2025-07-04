@@ -30,12 +30,11 @@ export async function extractTextFromImage(input: ExtractTextFromImageInput): Pr
 
 const extractTextPrompt = ai.definePrompt({
     name: 'extractTextPrompt',
-    model: 'googleai/gemini-1.5-pro-latest',
-    input: {schema: ExtractTextFromImageInputSchema},
+    model: 'googleai/gemini-1.5-flash-latest',
     output: {schema: ExtractTextFromImageOutputSchema},
     prompt: `You are an expert at Optical Character Recognition (OCR). Your task is to extract all text from the provided images.
 - Concatenate the text from all documents into a single block of text, maintaining the original order.
-- You MUST return the result in a JSON format that matches the following schema: { "text": "The extracted text..." }.
+- You MUST return the result in a JSON format.
 
 {{#each photoDataUris}}
 Document Page: {{media url=this}}
