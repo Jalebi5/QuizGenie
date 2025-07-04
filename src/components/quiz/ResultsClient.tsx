@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { StoredQuizData, QuizResult } from "@/types/quiz";
+import { StoredQuizData, QuizResult, Question } from "@/types/quiz";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -22,15 +22,32 @@ export default function ResultsClient() {
   const { toast } = useToast();
   const { quizResult, setQuizData } = useQuizCreation();
   const [filter, setFilter] = useState<FilterType>('all');
+  const [isPrinting, setIsPrinting] = useState(false);
 
   useEffect(() => {
     if (!quizResult) {
       router.push("/");
     }
   }, [quizResult, router]);
+  
+  useEffect(() => {
+    const handleAfterPrint = () => {
+      setIsPrinting(false);
+    };
+
+    if (isPrinting) {
+      // Use 'once: true' to automatically remove the listener after it fires.
+      window.addEventListener("afterprint", handleAfterPrint, { once: true });
+      window.print();
+    }
+    
+    return () => {
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+  }, [isPrinting]);
 
   const handlePrint = () => {
-    window.print();
+    setIsPrinting(true);
   };
   
   const handleRetakeIncorrect = () => {
@@ -73,6 +90,50 @@ export default function ResultsClient() {
   };
 
   const incorrectCount = quizResult.quiz.length - quizResult.score;
+
+  const ReviewContent = ({ question, qIndex }: { question: Question, qIndex: number}) => {
+    const userAnswerIndex = quizResult.answers[qIndex];
+    return (
+      <>
+        <ul className="space-y-2 mb-4">
+          {question.options.map((option, oIndex) => {
+            const isUserAnswer = oIndex === userAnswerIndex;
+            const isCorrectAnswer = oIndex === question.correctAnswerIndex;
+            return (
+              <li
+                key={oIndex}
+                className={cn(
+                  "flex p-3 rounded-md border items-start",
+                  isCorrectAnswer ? "bg-green-100 dark:bg-green-900/50 border-green-500" : "",
+                  isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900/50 border-red-500" : ""
+                )}
+              >
+                <div className="flex-1 min-w-0 pr-4">
+                  <span className="break-words">{String.fromCharCode(65 + oIndex)}. {option}</span>
+                </div>
+                <div className="flex-shrink-0">
+                  {isUserAnswer && !isCorrectAnswer && <span className="text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
+                  {isCorrectAnswer && <span className="text-sm font-semibold text-green-600 whitespace-nowrap">(Correct Answer)</span>}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+        {question.explanation && (
+          <div className="mt-4 rounded-lg border border-primary/20 bg-primary/10 p-4 space-y-2">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="h-5 w-5 text-primary" />
+              <h4 className="font-bold font-headline text-primary">Explanation</h4>
+            </div>
+            <div
+              className="text-sm text-foreground/80 break-words"
+              dangerouslySetInnerHTML={createMarkup(question.explanation)}
+            />
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className="max-w-4xl mx-auto" id="results-to-print">
@@ -133,64 +194,48 @@ export default function ResultsClient() {
                     <Button variant={filter === 'incorrect' ? 'destructive' : 'outline'} size="sm" onClick={() => setFilter('incorrect')}>Incorrect ({incorrectCount})</Button>
                 </div>
              </div>
-             <Accordion type="single" collapsible className="w-full">
-              {quizResult.quiz.map((question, qIndex) => {
-                const userAnswerIndex = quizResult.answers[qIndex];
-                const isCorrect = userAnswerIndex === question.correctAnswerIndex;
-
-                if (filter === 'correct' && !isCorrect) return null;
-                if (filter === 'incorrect' && isCorrect) return null;
-
-                return (
-                  <AccordionItem value={`item-${qIndex}`} key={qIndex}>
-                    <AccordionTrigger>
-                      <div className="flex items-start gap-2 w-full text-left">
+             
+             {isPrinting ? (
+              <div className="space-y-6 pt-4">
+                {quizResult.quiz.map((question, qIndex) => {
+                  const isCorrect = quizResult.answers[qIndex] === question.correctAnswerIndex;
+                  return (
+                    <div key={qIndex} className="border-t pt-4 first:border-t-0 first:pt-0">
+                      <div className="flex items-start gap-2 w-full text-left mb-4 font-semibold">
                         {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-1" /> : <X className="h-5 w-5 text-destructive flex-shrink-0 mt-1" />}
-                        <div className="flex-1 min-w-0 break-words">{qIndex + 1}. {question.question}</div>
+                        <p className="flex-1 min-w-0 break-words">{qIndex + 1}. {question.question}</p>
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <ul className="space-y-2 mb-4">
-                        {question.options.map((option, oIndex) => {
-                          const isUserAnswer = oIndex === userAnswerIndex;
-                          const isCorrectAnswer = oIndex === question.correctAnswerIndex;
-                          return (
-                            <li
-                              key={oIndex}
-                              className={cn(
-                                "flex p-3 rounded-md border items-start",
-                                isCorrectAnswer ? "bg-green-100 dark:bg-green-900/50 border-green-500" : "",
-                                isUserAnswer && !isCorrectAnswer ? "bg-red-100 dark:bg-red-900/50 border-red-500" : ""
-                              )}
-                            >
-                              <div className="flex-1 min-w-0 pr-4">
-                                <span className="break-words">{String.fromCharCode(65 + oIndex)}. {option}</span>
-                              </div>
-                              <div className="flex-shrink-0">
-                                {isUserAnswer && !isCorrectAnswer && <span className="text-sm font-semibold text-destructive whitespace-nowrap">(Your Answer)</span>}
-                                {isCorrectAnswer && <span className="text-sm font-semibold text-green-600 whitespace-nowrap">(Correct Answer)</span>}
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                      {question.explanation && (
-                        <div className="mt-4 rounded-lg border border-primary/20 bg-primary/10 p-4 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <HelpCircle className="h-5 w-5 text-primary" />
-                            <h4 className="font-bold font-headline text-primary">Explanation</h4>
-                          </div>
-                          <div
-                            className="text-sm text-foreground/80 break-words"
-                            dangerouslySetInnerHTML={createMarkup(question.explanation)}
-                          />
+                      <div className="pl-7">
+                        <ReviewContent question={question} qIndex={qIndex} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+             ) : (
+              <Accordion type="single" collapsible className="w-full">
+                {quizResult.quiz.map((question, qIndex) => {
+                  const isCorrect = quizResult.answers[qIndex] === question.correctAnswerIndex;
+
+                  if (filter === 'correct' && !isCorrect) return null;
+                  if (filter === 'incorrect' && isCorrect) return null;
+
+                  return (
+                    <AccordionItem value={`item-${qIndex}`} key={qIndex}>
+                      <AccordionTrigger>
+                        <div className="flex items-start gap-2 w-full text-left">
+                          {isCorrect ? <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-1" /> : <X className="h-5 w-5 text-destructive flex-shrink-0 mt-1" />}
+                          <div className="flex-1 min-w-0 break-words">{qIndex + 1}. {question.question}</div>
                         </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                );
-              })}
-            </Accordion>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <ReviewContent question={question} qIndex={qIndex} />
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+             )}
           </div>
 
           <div className="text-center no-print">
